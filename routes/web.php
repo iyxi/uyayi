@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AdminController;
 
-Route::get('/', [CustomerController::class, 'index'])->name('home');
+Route::get('/shop', [CustomerController::class, 'index'])->name('home');
 
 // Auth routes (use Laravel Breeze/Jetstream in production)
 
