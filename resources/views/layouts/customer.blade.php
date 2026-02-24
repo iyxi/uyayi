@@ -12,11 +12,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+       <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-green: #8B9A47;
+            --primary-green: #8b9c41;
             --soft-yellow: #F4E4A6;
             --warm-beige: #F5F0E8;
             --soft-brown: #8B7355;

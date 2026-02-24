@@ -12,7 +12,7 @@
                 <div class="hero-content">
                     <h1 class="display-4 fw-bold mb-3" style="color: var(--primary-green);">
                         Welcome to Uyayi 
-                        <span style="font-family: 'Yellowtail', cursive;"></span>
+                        <span style="font-family: 'Yellowtail';"></span>
                     </h1>
                     <p class="lead mb-4" style="color: var(--text-dark);">
                         Discover beautiful, eco-friendly children's clothing made with love for your little ones and our planet.
@@ -32,8 +32,7 @@
             </div>
             <div class="col-lg-6 text-center">
                 <div class="hero-image-placeholder">
-                    <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=786&q=80" 
-                         alt="Happy child in eco-friendly clothing" 
+                    <img src=
                          class="img-fluid rounded-3 shadow-lg"
                          style="max-height: 400px; object-fit: cover;">
                 </div>
