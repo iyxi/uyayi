@@ -10,6 +10,37 @@ use App\Models\Payment;
 
 class CustomerController extends Controller
 {
+    // Homepage view
+    public function homepage()
+    {
+        return view('homepage');
+    }
+
+    // Shop page view
+    public function shop()
+    {
+        return view('shop');
+    }
+
+    // Product details page
+    public function product(Product $product)
+    {
+        return view('product-details', compact('product'));
+    }
+
+    // Cart view page
+    public function cartView()
+    {
+        return view('cart');
+    }
+
+    // Checkout page
+    public function checkoutPage()
+    {
+        return view('checkout');
+    }
+
+    // API endpoint for products (used by frontend)
     public function index()
     {
         return Product::where('visible',1)->with('inventory')->paginate(12);
