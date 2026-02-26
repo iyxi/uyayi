@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
 
 // Customer-facing ecommerce routes
 Route::get('/', [CustomerController::class, 'homepage'])->name('homepage');
@@ -14,18 +15,15 @@ Route::get('/checkout-page', [CustomerController::class, 'checkoutPage'])->name(
 // API routes for cart functionality
 Route::get('/api/products', [CustomerController::class, 'index'])->name('api.products');
 
-// Simple Auth routes (for demo purposes - use Laravel Breeze/Jetstream in production)
-Route::get('/login', function() {
-    return redirect()->route('homepage')->with('info', 'Please install Laravel Breeze or Jetstream for authentication');
-})->name('login');
+// Authentication routes
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
 
-Route::get('/register', function() {
-    return redirect()->route('homepage')->with('info', 'Please install Laravel Breeze or Jetstream for authentication');  
-})->name('register');
-
-Route::post('/logout', function() {
-    return redirect()->route('homepage');
-})->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Customer routes
 Route::middleware(['auth'])->group(function(){
@@ -38,8 +36,14 @@ Route::middleware(['auth'])->group(function(){
 // Admin routes
 Route::prefix('admin')->middleware(['auth','can:admin-area'])->group(function(){
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::resource('products', AdminController::class)->only(['index','store','update','destroy']);
-    Route::post('inventory/restock', [AdminController::class, 'restock'])->name('inventory.restock');
-    Route::get('orders', [AdminController::class, 'orders'])->name('admin.orders');
-    Route::patch('orders/{order}/status', [AdminController::class, 'updateOrderStatus'])->name('admin.orders.status');
+    Route::get('/products', [AdminController::class, 'index'])->name('admin.products.index');
+    Route::post('/products', [AdminController::class, 'store'])->name('admin.products.store');
+    Route::get('/products/create', function() {
+        return redirect()->route('admin.products.index');
+    })->name('admin.products.create');
+    Route::patch('/products/{product}', [AdminController::class, 'update'])->name('admin.products.update');
+    Route::delete('/products/{product}', [AdminController::class, 'destroy'])->name('admin.products.destroy');
+    Route::post('/inventory/restock', [AdminController::class, 'restock'])->name('admin.inventory.restock');
+    Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders');
+    Route::patch('/orders/{order}/status', [AdminController::class, 'updateOrderStatus'])->name('admin.orders.status');
 });

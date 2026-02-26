@@ -8,17 +8,18 @@ class CreateOrdersPaymentsTables extends Migration
 {
     public function up()
     {
+        // Create orders table first (without payment_id foreign key)
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('order_number')->unique();
-            $table->enum('status',['Pending','Processing','Shipped','Completed','Cancelled'])->default('Pending');
-            $table->decimal('total',10,2)->default(0);
+            $table->enum('status',['pending','processing','shipped','completed','cancelled'])->default('pending');
+            $table->decimal('total_amount',10,2)->default(0);
             $table->text('shipping_address')->nullable();
-            $table->foreignId('payment_id')->nullable()->constrained('payments')->nullOnDelete();
             $table->timestamps();
         });
 
+        // Create order_items table
         Schema::create('order_items', function (Blueprint $table){
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
@@ -29,13 +30,14 @@ class CreateOrdersPaymentsTables extends Migration
             $table->timestamps();
         });
 
+        // Create payments table (referencing orders)
         Schema::create('payments', function (Blueprint $table){
             $table->id();
             $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('method',['GCash','Card','COD']);
+            $table->enum('method',['gcash','card','cod']);
             $table->decimal('amount',10,2);
-            $table->enum('status',['Pending','Paid','Failed','Refunded'])->default('Pending');
+            $table->enum('status',['pending','paid','failed','refunded'])->default('pending');
             $table->string('txn_reference')->nullable();
             $table->timestamps();
         });
@@ -43,6 +45,7 @@ class CreateOrdersPaymentsTables extends Migration
 
     public function down()
     {
+        Schema::dropIfExists('payments');
         Schema::dropIfExists('payments');
         Schema::dropIfExists('order_items');
         Schema::dropIfExists('orders');
