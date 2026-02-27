@@ -1,30 +1,20 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Products Management - Uyayi Admin')
+@section('title', 'Products - Uyayi Admin')
+
+@section('breadcrumb')
+<a href="{{ route('admin.dashboard') }}">Dashboard</a>
+<span class="separator">&gt;</span>
+<span class="current">Products</span>
+@endsection
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="bi bi-box"></i> Products Management</h1>
-            <div>
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
-                </a>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    <i class="bi bi-plus-lg"></i> Add Product
-                </button>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">Products</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="bi bi-plus-lg"></i> Add Product
+    </button>
 </div>
-
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle"></i> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 <!-- Products Table -->
 <div class="card border-0 shadow-sm">

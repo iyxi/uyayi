@@ -1,8 +1,8 @@
 -- Uyayi DB schema (3NF)
--- Database: uyayi_db
+-- Database: uyayi
 
-CREATE DATABASE IF NOT EXISTS uyayi_db;
-USE uyayi_db;
+CREATE DATABASE IF NOT EXISTS uyayi;
+USE uyayi;
 
 -- Roles
 CREATE TABLE roles (
@@ -63,15 +63,14 @@ CREATE TABLE restocks (
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Orders (header) - Created first without payment_id foreign key
+-- Orders (header)
 CREATE TABLE orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  user_id INT NULL,
   order_number VARCHAR(64) NOT NULL UNIQUE,
   status ENUM('Pending','Processing','Shipped','Completed','Cancelled') NOT NULL DEFAULT 'Pending',
   total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   shipping_address TEXT,
-  payment_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -81,7 +80,7 @@ CREATE TABLE orders (
 CREATE TABLE payments (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT NULL,
-  user_id INT NOT NULL,
+  user_id INT NULL,
   method ENUM('GCash','Card','COD') NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   status ENUM('Pending','Paid','Failed','Refunded') NOT NULL DEFAULT 'Pending',
@@ -95,18 +94,13 @@ CREATE TABLE payments (
 CREATE TABLE order_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT NOT NULL,
-  product_id INT NOT NULL,
+  product_id INT NULL,
   quantity INT NOT NULL,
   unit_price DECIMAL(10,2) NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL,
   FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
-
--- Add the payment_id foreign key constraint after payments table is created
-ALTER TABLE orders 
-ADD CONSTRAINT fk_orders_payment_id 
-FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL;
 
 -- Expenses (store operational expenses)
 CREATE TABLE expenses (

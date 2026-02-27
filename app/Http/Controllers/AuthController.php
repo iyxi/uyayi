@@ -31,13 +31,6 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            $user = Auth::user();
-            
-            // Redirect based on user type (you can customize this logic)
-            if ($user->email === 'admin@uyayi.com') {
-                return redirect()->intended(route('admin.dashboard'));
-            }
-
             return redirect()->intended(route('homepage'));
         }
 

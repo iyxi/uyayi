@@ -15,14 +15,14 @@
                         <span style="font-family: 'Yellowtail';"></span>
                     </h1>
                     <p class="lead mb-4" style="color: var(--text-dark);">
-                        Discover beautiful, eco-friendly children's clothing made with love for your little ones and our planet.
+                        Your trusted destination for safe, gentle, and reliable infant toiletries designed to protect and care for your baby’s delicate skin.
                     </p>
                     <div class="d-flex gap-3 align-items-center mb-4">
                         <div class="eco-badge">
-                            🌱 100% Eco-friendly and sustainable!
+                           Dermatologist-Tested & Baby-Safe
                         </div>
                         <div class="text-success fw-bold">
-                            Buy 2 and Get 20% Off
+                            Buy 2 and Get 20% Off on Your First Order!
                         </div>
                     </div>
                     <a href="{{ route('shop') }}" class="btn btn-primary-custom btn-lg">
@@ -46,7 +46,7 @@
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold" style="color: var(--primary-green);">Featured Products</h2>
-            <p class="lead text-muted">Handpicked favorites for your little ones</p>
+            <p class="lead text-muted">Carefully selected essentials for your baby’s daily hygiene and comfort.</p>
         </div>
         
         <div class="row" id="featured-products">
@@ -66,7 +66,7 @@
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold" style="color: var(--primary-green);">Shop by Category</h2>
-            <p class="lead text-muted">Find exactly what you're looking for</p>
+            <p class="lead text-muted">Find the right toiletries for your little one’s needs.</p>
         </div>
         
         <div class="row g-4">
@@ -75,9 +75,9 @@
                     <div class="category-icon mb-3">
                         <i class="bi bi-flower1 display-4" style="color: var(--primary-green);"></i>
                     </div>
-                    <h5 class="fw-bold">Dresses</h5>
-                    <p class="text-muted mb-3">Beautiful dresses for special moments</p>
-                    <a href="{{ route('shop') }}?category=dresses" class="btn btn-outline-success btn-sm">Shop Dresses</a>
+                    <h5 class="fw-bold">Bath Essentials</h5>
+                    <p class="text-muted mb-3">Gentle baby wash, shampoo, and soap for delicate skin.</p>
+                    <a href="{{ route('shop') }}?category=bath" class="btn btn-outline-success btn-sm">Shop Now</a>
                 </div>
             </div>
             
@@ -86,9 +86,9 @@
                     <div class="category-icon mb-3">
                         <i class="bi bi-house-heart display-4" style="color: var(--soft-brown);"></i>
                     </div>
-                    <h5 class="fw-bold">Casual Wear</h5>
-                    <p class="text-muted mb-3">Comfortable everyday clothing</p>
-                    <a href="{{ route('shop') }}?category=casual" class="btn btn-outline-success btn-sm">Shop Casual</a>
+                    <h5 class="fw-bold">Diapering Care</h5>
+                    <p class="text-muted mb-3">Diaper rash cream, wipes, and changing essentials.</p>
+                    <a href="{{ route('shop') }}?category=diapering" class="btn btn-outline-success btn-sm">Shop Now</a>
                 </div>
             </div>
             
@@ -97,9 +97,9 @@
                     <div class="category-icon mb-3">
                         <i class="bi bi-stars display-4" style="color: var(--primary-green);"></i>
                     </div>
-                    <h5 class="fw-bold">New Arrivals</h5>
-                    <p class="text-muted mb-3">Latest additions to our collection</p>
-                    <a href="{{ route('shop') }}?sort=newest" class="btn btn-outline-success btn-sm">Shop New</a>
+                    <h5 class="fw-bold">Skin Care</h5>
+                    <p class="text-muted mb-3">Baby lotion, oils, powders, and moisturizing products.</p>
+                    <a href="{{ route('shop') }}?sort=newest" class="btn btn-outline-success btn-sm">Shop Now</a>
                 </div>
             </div>
             
@@ -108,9 +108,9 @@
                     <div class="category-icon mb-3">
                         <i class="bi bi-tag display-4" style="color: var(--soft-brown);"></i>
                     </div>
-                    <h5 class="fw-bold">Sale Items</h5>
-                    <p class="text-muted mb-3">Great deals on quality pieces</p>
-                    <a href="{{ route('shop') }}?sale=true" class="btn btn-outline-danger btn-sm">Shop Sale</a>
+                    <h5 class="fw-bold">Health & Hygiene</h5>
+                    <p class="text-muted mb-3">Baby-safe sanitizers, cotton buds, nail care, and grooming kits.</p>
+                    <a href="{{ route('shop') }}?sale=true" class="btn btn-outline-successbtn-sm">Shop Now</a>
                 </div>
             </div>
         </div>
@@ -127,31 +127,22 @@
         <div class="row g-4">
             <div class="col-md-4 text-center">
                 <div class="feature-item">
-                    <div class="feature-icon mb-3">
-                        <i class="bi bi-leaf display-4" style="color: var(--primary-green);"></i>
-                    </div>
-                    <h5 class="fw-bold">Eco-Friendly Materials</h5>
-                    <p class="text-muted">Made from sustainable, organic materials that are gentle on your child's skin and the environment.</p>
+                    <h5 class="fw-bold">Gentle & Safe Formulations</h5>
+                    <p class="text-muted">Specially selected infant toiletries made for sensitive and delicate skin.</p>
                 </div>
             </div>
             
             <div class="col-md-4 text-center">
                 <div class="feature-item">
-                    <div class="feature-icon mb-3">
-                        <i class="bi bi-heart display-4" style="color: var(--soft-brown);"></i>
-                    </div>
-                    <h5 class="fw-bold">Made with Love</h5>
-                    <p class="text-muted">Every piece is carefully crafted with attention to detail and love for your little ones.</p>
+                    <h5 class="fw-bold">Trusted Quality</h5>
+                    <p class="text-muted">Products carefully chosen to meet safety and hygiene standards for babies.</p>
                 </div>
             </div>
             
             <div class="col-md-4 text-center">
                 <div class="feature-item">
-                    <div class="feature-icon mb-3">
-                        <i class="bi bi-shield-check display-4" style="color: var(--primary-green);"></i>
-                    </div>
-                    <h5 class="fw-bold">Quality Guarantee</h5>
-                    <p class="text-muted">We stand behind our quality with a satisfaction guarantee and easy returns.</p>
+                    <h5 class="fw-bold">Parent-Friendly Convenience</h5>
+                    <p class="text-muted">Easy ordering, secure transactions, and reliable delivery for busy parents.</p>
                 </div>
             </div>
         </div>
@@ -159,23 +150,7 @@
 </section>
 
 <!-- Newsletter Section -->
-<section class="py-5" style="background: linear-gradient(135deg, var(--soft-yellow) 0%, var(--primary-green) 100%);">
-    <div class="container">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-8">
-                <h3 class="fw-bold text-white mb-3">Stay Updated with Uyayi</h3>
-                <p class="text-white mb-4">Get the latest updates on new collections, eco-parenting tips, and exclusive offers!</p>
-                <div class="input-group input-group-lg">
-                    <input type="email" class="form-control" placeholder="Enter your email address">
-                    <button class="btn btn-light fw-bold" type="button">
-                        Subscribe <i class="bi bi-arrow-right"></i>
-                    </button>
-                </div>
-                <small class="text-white d-block mt-2">We respect your privacy. Unsubscribe at any time.</small>
-            </div>
-        </div>
-    </div>
-</section>
+<!-- Newsletter removed -->
 @endsection
 
 @push('scripts')

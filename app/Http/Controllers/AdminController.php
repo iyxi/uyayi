@@ -7,7 +7,11 @@ use App\Models\Product;
 use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\User;
-use App\Models\Restock;
+use App\Models\Payment;
+use App\Models\Expense;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -64,7 +68,23 @@ class AdminController extends Controller
         return response()->noContent();
     }
 
-    // Restock
+    // Customers
+    public function customers()
+    {
+        $customers = User::withCount('orders')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        
+        return view('admin.customers.index', compact('customers'));
+    }
+
+    // Inventory
+    public function inventory()
+    {
+        $products = Product::with('inventory')->paginate(20);
+        return view('admin.inventory.index', compact('products'));
+    }
+
     public function restock(Request $r)
     {
         $pid = $r->input('product_id');
@@ -72,14 +92,30 @@ class AdminController extends Controller
         $inv = Inventory::firstOrCreate(['product_id'=>$pid]);
         $inv->stock += $qty;
         $inv->save();
-        // record restock in restocks table (use model or DB)
-        \DB::table('restocks')->insert([
+        
+        DB::table('restocks')->insert([
             'product_id'=>$pid,
             'added_quantity'=>$qty,
             'restock_date'=>now(),
             'note'=>$r->input('note')
         ]);
-        return response()->json(['stock'=>$inv->stock]);
+        
+        if($r->wantsJson()) {
+            return response()->json(['stock'=>$inv->stock]);
+        }
+        
+        return redirect()->back()->with('success', 'Stock updated successfully!');
+    }
+
+    public function restockHistory()
+    {
+        $restocks = DB::table('restocks')
+            ->join('products', 'restocks.product_id', '=', 'products.id')
+            ->select('restocks.*', 'products.name as product_name', 'products.sku')
+            ->orderBy('restocks.restock_date', 'desc')
+            ->paginate(20);
+        
+        return view('admin.inventory.restocks', compact('restocks'));
     }
 
     // Orders
@@ -94,5 +130,119 @@ class AdminController extends Controller
         $order->status = $r->input('status');
         $order->save();
         return response()->json($order);
+    }
+
+    // Payments
+    public function payments()
+    {
+        $payments = Payment::with(['order', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        
+        $stats = [
+            'total' => Payment::where('status', 'Paid')->sum('amount'),
+            'pending' => Payment::where('status', 'Pending')->sum('amount'),
+            'count' => Payment::count()
+        ];
+        
+        return view('admin.payments.index', compact('payments', 'stats'));
+    }
+
+    // Expenses
+    public function expenses()
+    {
+        $expenses = Expense::orderBy('expense_date', 'desc')->paginate(20);
+        
+        $stats = [
+            'total' => Expense::sum('amount'),
+            'this_month' => Expense::whereMonth('expense_date', now()->month)
+                ->whereYear('expense_date', now()->year)
+                ->sum('amount'),
+            'count' => Expense::count()
+        ];
+        
+        return view('admin.expenses.index', compact('expenses', 'stats'));
+    }
+
+    public function storeExpense(Request $r)
+    {
+        $r->validate([
+            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'expense_date' => 'required|date'
+        ]);
+        
+        Expense::create($r->only(['description', 'amount', 'expense_date']));
+        
+        return redirect()->route('admin.expenses')->with('success', 'Expense added successfully!');
+    }
+
+    public function destroyExpense($id)
+    {
+        Expense::findOrFail($id)->delete();
+        return redirect()->route('admin.expenses')->with('success', 'Expense deleted!');
+    }
+
+    // Reports
+    public function reports()
+    {
+        $salesByMonth = Order::selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, SUM(total) as total, COUNT(*) as count')
+            ->where('status', '!=', 'Cancelled')
+            ->groupByRaw('YEAR(created_at), MONTH(created_at)')
+            ->orderByRaw('YEAR(created_at) DESC, MONTH(created_at) DESC')
+            ->take(12)
+            ->get();
+        
+        $topProducts = Product::withCount('orderItems')
+            ->orderBy('order_items_count', 'desc')
+            ->take(10)
+            ->get();
+        
+        $stats = [
+            'total_sales' => Order::where('status', '!=', 'Cancelled')->sum('total'),
+            'total_orders' => Order::count(),
+            'total_customers' => User::count(),
+            'total_products' => Product::count()
+        ];
+        
+        return view('admin.reports.index', compact('salesByMonth', 'topProducts', 'stats'));
+    }
+
+    // Settings
+    public function settings()
+    {
+        return view('admin.settings.index');
+    }
+
+    // Account
+    public function account()
+    {
+        return view('admin.account.index');
+    }
+
+    public function updateAccount(Request $r)
+    {
+        $user = Auth::user();
+        
+        $r->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'current_password' => 'nullable|required_with:new_password',
+            'new_password' => 'nullable|min:8|confirmed'
+        ]);
+        
+        $user->name = $r->name;
+        $user->email = $r->email;
+        
+        if ($r->filled('new_password')) {
+            if (!Hash::check($r->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect']);
+            }
+            $user->password = Hash::make($r->new_password);
+        }
+        
+        $user->save();
+        
+        return redirect()->route('admin.account')->with('success', 'Account updated successfully!');
     }
 }

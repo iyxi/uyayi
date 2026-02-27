@@ -133,7 +133,7 @@
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{{ route('homepage') }}">
-                🐄 Uyayi
+                Uyayi
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -177,8 +177,12 @@
                                 <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> My Account</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-box"></i> My Orders</a></li>
+                                @if(Auth::user()->email === 'admin@uyayi.com')
+                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Admin Dashboard</a></li>
+                                @else
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> My Account</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-box"></i> My Orders</a></li>
+                                @endif
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
@@ -233,9 +237,9 @@
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <h5 class="fw-bold mb-3">Uyayi Store</h5>
-                    <p class="mb-3">Eco-friendly and sustainable children's clothing made with love for your little ones and our planet.</p>
+                    <p class="mb-3">Providing safe, gentle, and essential infant toiletries to support healthy beginnings.</p>
                     <div class="eco-badge">
-                        🌱 100% Eco-Friendly
+                        Safe. Gentle. Trusted.
                     </div>
                 </div>
                 <div class="col-md-2 mb-4">
@@ -250,33 +254,28 @@
                 <div class="col-md-2 mb-4">
                     <h6 class="fw-bold mb-3">Customer Care</h6>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-light text-decoration-none">Size Guide</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">Shipping Info</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">Returns</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Product Guide</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Shipping Information</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Returns & Exchanges</a></li>
                         <li><a href="#" class="text-light text-decoration-none">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4 mb-4">
                     <h6 class="fw-bold mb-3">Stay Connected</h6>
-                    <p>Subscribe to our newsletter for the latest updates and eco-friendly parenting tips!</p>
-                    <div class="input-group mb-3">
-                        <input type="email" class="form-control" placeholder="Your email address">
-                        <button class="btn btn-light" type="button">Subscribe</button>
-                    </div>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-light fs-4"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-light fs-4"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="text-light fs-4"><i class="bi bi-pinterest"></i></a>
-                    </div>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="text-light fs-4"><i class="bi bi-facebook"></i></a>
+                            <a href="#" class="text-light fs-4"><i class="bi bi-instagram"></i></a>
+                            <a href="#" class="text-light fs-4"><i class="bi bi-pinterest"></i></a>
+                        </div>
                 </div>
             </div>
             <hr class="border-light">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; 2026 Uyayi Store. All rights reserved.</p>
+                    <p class="mb-0">&copy; 2026 Uyayi Official</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <small>Made with 💚 for sustainable families</small>
+                    <small>Gentle & Sustainable Baby Care</small>
                 </div>
             </div>
         </div>

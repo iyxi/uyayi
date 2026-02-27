@@ -8,19 +8,11 @@
 <section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-yellow);">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-md-6">
+            <div class="col-12">
                 <h1 class="fw-bold mb-0" style="color: var(--primary-green);">
-                    <i class="bi bi-shop"></i> Our Collection
+                    <i class="bi bi-shop"></i> Infant Essentials
                 </h1>
-                <p class="text-muted mb-0">Discover beautiful, eco-friendly children's clothing</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb justify-content-md-end mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('homepage') }}" class="text-decoration-none">Home</a></li>
-                        <li class="breadcrumb-item active">Shop</li>
-                    </ol>
-                </nav>
+                <p class="text-muted mb-0">Specially selected infant toiletries made for sensitive and delicate skin.</p>
             </div>
         </div>
     </div>
@@ -41,19 +33,19 @@
             <div class="col-md-2">
                 <select class="form-select" id="category-filter">
                     <option value="">All Categories</option>
-                    <option value="dresses">Dresses</option>
-                    <option value="casual">Casual Wear</option>
-                    <option value="formal">Formal Wear</option>
-                    <option value="accessories">Accessories</option>
+                    <option value="dresses">Bath Essentials</option>
+                    <option value="casual">Diapering Care</option>
+                    <option value="formal">Skin Care</option>
+                    <option value="accessories">Health & Hygiene</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <select class="form-select" id="price-filter">
                     <option value="">All Prices</option>
-                    <option value="0-25">$0 - $25</option>
-                    <option value="25-50">$25 - $50</option>
-                    <option value="50-75">$50 - $75</option>
-                    <option value="75+">$75+</option>
+                    <option value="0-25">₱0 - ₱250</option>
+                    <option value="25-50">₱250 - ₱500</option>
+                    <option value="50-75">₱500 - ₱750</option>
+                    <option value="75+">₱750+</option>
                 </select>
             </div>
             <div class="col-md-2">

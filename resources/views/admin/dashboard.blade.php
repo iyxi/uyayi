@@ -1,157 +1,138 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Admin Dashboard - Uyayi Store')
+@section('title', 'Dashboard - Uyayi Admin')
+
+@section('breadcrumb')
+<span class="current">Dashboard</span>
+@endsection
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="bi bi-speedometer2"></i> Admin Dashboard</h1>
-            <div>
-                <span class="text-muted">Welcome back, {{ Auth::user()->name }}</span>
-                <span class="badge bg-primary ms-2">Administrator</span>
-            </div>
-        </div>
-    </div>
-</div>
+<h1 class="page-title">Dashboard</h1>
 
 <!-- Statistics Cards -->
-<div class="row g-4 mb-5">
+<div class="row g-4 mb-4">
     <!-- Products Summary -->
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-box text-primary" style="font-size: 2.5rem;"></i>
-                </div>
-                <h3 class="fw-bold text-primary">{{ $stats['products'] }}</h3>
-                <p class="card-text text-muted mb-3">Total Products</p>
-                <a href="{{ route('admin.products.index') }}" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-arrow-right"></i> Manage
-                </a>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--soft-yellow); color: var(--primary-green);">
+                <i class="bi bi-box-seam"></i>
             </div>
+            <div class="stat-value" style="color: var(--primary-green);">{{ $stats['products'] }}</div>
+            <div class="stat-label">Total Products</div>
         </div>
     </div>
 
     <!-- Orders Summary -->
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-cart3 text-success" style="font-size: 2.5rem;"></i>
-                </div>
-                <h3 class="fw-bold text-success">{{ $stats['orders'] }}</h3>
-                <p class="card-text text-muted mb-3">Total Orders</p>
-                <a href="{{ route('admin.orders') }}" class="btn btn-outline-success btn-sm">
-                    <i class="bi bi-arrow-right"></i> View Orders
-                </a>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
+                <i class="bi bi-receipt"></i>
             </div>
+            <div class="stat-value" style="color: #10b981;">{{ $stats['orders'] }}</div>
+            <div class="stat-label">Total Orders</div>
         </div>
     </div>
 
     <!-- Users Summary -->
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-people text-info" style="font-size: 2.5rem;"></i>
-                </div>
-                <h3 class="fw-bold text-info">{{ $stats['users'] }}</h3>
-                <p class="card-text text-muted mb-3">Registered Users</p>
-                <button class="btn btn-outline-info btn-sm" disabled>
-                    <i class="bi bi-arrow-right"></i> Manage
-                </button>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--warm-beige); color: var(--soft-brown);">
+                <i class="bi bi-people"></i>
             </div>
+            <div class="stat-value" style="color: var(--soft-brown);">{{ $stats['users'] }}</div>
+            <div class="stat-label">Registered Users</div>
         </div>
     </div>
 
     <!-- Low Stock Alert -->
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2.5rem;"></i>
-                </div>
-                <h3 class="fw-bold text-warning">{{ $stats['low_stock']->count() }}</h3>
-                <p class="card-text text-muted mb-3">Low Stock Items</p>
-                <button class="btn btn-outline-warning btn-sm" onclick="$('#lowStockModal').modal('show')">
-                    <i class="bi bi-eye"></i> View
-                </button>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+                <i class="bi bi-exclamation-triangle"></i>
             </div>
+            <div class="stat-value" style="color: #f59e0b;">{{ $stats['low_stock']->count() }}</div>
+            <div class="stat-label">Low Stock Items</div>
         </div>
     </div>
 </div>
 
-<!-- Recent Activity -->
+<!-- Recent Orders -->
 <div class="row">
-    <!-- Recent Orders -->
-    <div class="col-md-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Orders</h5>
+    <div class="col-lg-8 mb-4">
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2"></i>Recent Orders</h5>
+                <a href="{{ route('admin.orders') }}" class="action-btn">View All</a>
             </div>
-            <div class="card-body">
-                @if($stats['recent_orders']->count() > 0)
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($stats['recent_orders'] as $order)
-                                <tr>
-                                    <td><strong>#{{ $order->id }}</strong></td>
-                                    <td>{{ $order->user->name ?? 'Guest' }}</td>
-                                    <td>${{ number_format($order->total_amount, 2) }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ $order->status === 'completed' ? 'success' : ($order->status === 'pending' ? 'warning' : 'secondary') }}">
-                                            {{ ucfirst($order->status) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $order->created_at->format('M j, Y') }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="{{ route('admin.orders') }}" class="btn btn-primary">View All Orders</a>
-                    </div>
-                @else
-                    <div class="text-center py-4">
-                        <i class="bi bi-cart-x text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2">No orders yet</p>
-                    </div>
-                @endif
-            </div>
+            @if($stats['recent_orders']->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($stats['recent_orders'] as $order)
+                            <tr>
+                                <td>
+                                    <div class="customer-info">
+                                        <div class="customer-avatar">
+                                            {{ strtoupper(substr($order->user->name ?? 'G', 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <div class="customer-name">{{ $order->user->name ?? 'Guest' }}</div>
+                                            <div class="order-number">Order #{{ $order->order_number ?? $order->id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>${{ number_format($order->total_amount ?? $order->total, 2) }}</strong></td>
+                                <td>
+                                    <span class="status-badge status-{{ strtolower($order->status) }}">
+                                        {{ ucfirst($order->status) }}
+                                    </span>
+                                </td>
+                                <td>{{ $order->created_at->format('M j, Y') }}</td>
+                                <td>
+                                    <button class="action-btn">View Details</button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <i class="bi bi-cart-x text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">No orders yet</p>
+                </div>
+            @endif
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+    <div class="col-lg-4 mb-4">
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <div class="d-grid gap-2">
-                    <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-lg"></i> Add New Product
+                    <a href="{{ route('admin.products.index') }}" class="action-btn text-center d-block py-3">
+                        <i class="bi bi-plus-lg me-2"></i>Add New Product
                     </a>
-                    <button class="btn btn-outline-secondary" onclick="$('#restockModal').modal('show')">
-                        <i class="bi bi-arrow-up-circle"></i> Restock Items
+                    <button class="action-btn py-3" data-bs-toggle="modal" data-bs-target="#lowStockModal">
+                        <i class="bi bi-exclamation-triangle me-2"></i>View Low Stock ({{ $stats['low_stock']->count() }})
                     </button>
-                    <a href="{{ route('admin.orders') }}" class="btn btn-outline-info">
-                        <i class="bi bi-eye"></i> Review Orders
+                    <a href="{{ route('admin.orders') }}" class="action-btn text-center d-block py-3">
+                        <i class="bi bi-eye me-2"></i>Review Orders
                     </a>
-                    <a href="{{ route('homepage') }}" class="btn btn-outline-success" target="_blank">
-                        <i class="bi bi-shop"></i> View Store
+                    <a href="{{ route('homepage') }}" class="action-btn text-center d-block py-3" target="_blank">
+                        <i class="bi bi-shop me-2"></i>View Store
                     </a>
                 </div>
             </div>

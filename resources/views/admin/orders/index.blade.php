@@ -1,25 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Orders Management - Uyayi Admin')
+@section('title', 'Orders - Uyayi Admin')
+
+@section('breadcrumb')
+<a href="{{ route('admin.dashboard') }}">Dashboard</a>
+<span class="separator">&gt;</span>
+<span class="current">Orders</span>
+@endsection
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="bi bi-cart3"></i> Orders Management</h1>
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
-    </div>
-</div>
-
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle"></i> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
+<h1 class="page-title">Orders</h1>
 
 <!-- Orders Table -->
 <div class="card border-0 shadow-sm">
