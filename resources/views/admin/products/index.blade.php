@@ -66,7 +66,7 @@
                                 </div>
                             </td>
                             <td><code>{{ $product->sku }}</code></td>
-                            <td><strong>${{ number_format($product->price, 2) }}</strong></td>
+                            <td><strong>₱{{ number_format($product->price, 2) }}</strong></td>
                             <td>
                                 @php $stock = $product->inventory->stock ?? 0 @endphp
                                 <span class="badge bg-{{ $stock > 10 ? 'success' : ($stock > 0 ? 'warning' : 'danger') }}">
@@ -134,15 +134,9 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="sku" class="form-label">SKU <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="sku" id="sku" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
                                 <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">₱</span>
                                     <input type="number" class="form-control" name="price" id="price" step="0.01" min="0" required>
                                 </div>
                             </div>
@@ -151,6 +145,12 @@
                             <div class="mb-3">
                                 <label for="stock" class="form-label">Initial Stock <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" name="stock" id="stock" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">SKU</label>
+                                <p class="form-control-plaintext text-muted">Auto-generated on create</p>
                             </div>
                         </div>
                         <div class="col-12">
@@ -180,30 +180,198 @@
     </div>
 </div>
 
-<script>
-// Auto-generate SKU from product name
-document.getElementById('name').addEventListener('input', function() {
-    const name = this.value;
-    const sku = name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 10);
-    document.getElementById('sku').value = sku;
-});
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="editProductForm" method="POST">
+                @csrf
+                @method('PATCH')
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" id="edit_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_sku" class="form-label">SKU</label>
+                                <input type="text" class="form-control" id="edit_sku" readonly disabled>
+                                <small class="text-muted">SKU cannot be changed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_price" class="form-label">Price <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="number" class="form-control" name="price" id="edit_price" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_stock" class="form-label">Current Stock</label>
+                                <input type="number" class="form-control" name="stock" id="edit_stock" min="0">
+                                <small class="text-muted">Use Restock button to add more inventory</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="edit_description" class="form-label">Description</label>
+                                <textarea class="form-control" name="description" id="edit_description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="visible" id="edit_visible" value="1">
+                                <label class="form-check-label" for="edit_visible">
+                                    Make product visible in store
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
+<!-- Restock Modal -->
+<div class="modal fade" id="restockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="restockForm" method="POST" action="{{ route('admin.inventory.restock') }}">
+                @csrf
+                <input type="hidden" name="product_id" id="restock_product_id">
+                <div class="modal-header">
+                    <h5 class="modal-title">Restock Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <p class="fw-bold" id="restock_product_name"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="restock_quantity" class="form-label">Quantity to Add <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="quantity" id="restock_quantity" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="restock_note" class="form-label">Note (optional)</label>
+                        <textarea class="form-control" name="note" id="restock_note" rows="2" placeholder="E.g., Supplier, reason for restock..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-arrow-up-circle"></i> Add Stock
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
 function editProduct(id) {
-    alert('Edit functionality coming soon! Product ID: ' + id);
+    // Fetch product data
+    fetch(`/admin/products/${id}/json`)
+        .then(response => response.json())
+        .then(product => {
+            // Populate form fields
+            document.getElementById('edit_name').value = product.name;
+            document.getElementById('edit_sku').value = product.sku;
+            document.getElementById('edit_price').value = product.price;
+            document.getElementById('edit_description').value = product.description || '';
+            document.getElementById('edit_visible').checked = product.visible == 1;
+            document.getElementById('edit_stock').value = product.inventory ? product.inventory.stock : 0;
+            
+            // Set form action
+            document.getElementById('editProductForm').action = `/admin/products/${id}`;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading product details');
+        });
 }
 
+// Handle edit form submission
+document.getElementById('editProductForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const productId = this.action.split('/').pop();
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+        
+        // Show success message and reload
+        alert('Product updated successfully!');
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating product');
+    });
+});
+
 function restockProduct(id, name) {
-    const quantity = prompt('How many units to add to "' + name + '" inventory?');
-    if (quantity && quantity > 0) {
-        // You can implement AJAX restock here
-        alert('Restock functionality coming soon! Adding ' + quantity + ' units to product ID: ' + id);
-    }
+    document.getElementById('restock_product_id').value = id;
+    document.getElementById('restock_product_name').textContent = name;
+    document.getElementById('restock_quantity').value = '';
+    document.getElementById('restock_note').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('restockModal'));
+    modal.show();
 }
 
 function deleteProduct(id, name) {
     if (confirm('Are you sure you want to delete "' + name + '"? This action cannot be undone.')) {
-        // You can implement delete functionality here
-        alert('Delete functionality coming soon! Product ID: ' + id);
+        fetch(`/admin/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Product deleted successfully!');
+                window.location.reload();
+            } else {
+                alert('Error deleting product');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting product');
+        });
     }
 }
 </script>

@@ -5,11 +5,11 @@
 
 @section('content')
 <!-- Page Header -->
-<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-yellow);">
+<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-tan);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-12">
-                <h1 class="fw-bold mb-0" style="color: var(--primary-green);">
+                <h1 class="fw-bold mb-0" style="color: var(--primary-blue-dark);">
                     <i class="bi bi-shop"></i> Infant Essentials
                 </h1>
                 <p class="text-muted mb-0">Specially selected infant toiletries made for sensitive and delicate skin.</p>
@@ -237,7 +237,7 @@ function displayProducts(data) {
                     
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="price">
-                            <span class="fw-bold fs-5" style="color: var(--primary-green);">$${product.price}</span>
+                            <span class="fw-bold fs-5" style="color: var(--primary-blue-dark);">$${product.price}</span>
                         </div>
                         <div class="product-actions">
                             <button class="btn btn-outline-secondary btn-sm me-2" onclick="viewProduct(${product.id})">

@@ -12,6 +12,7 @@ use App\Models\Expense;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -40,14 +41,22 @@ class AdminController extends Controller
     public function store(Request $r)
     {
         $r->validate([
-            'sku' => 'required|unique:products',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0'
         ]);
         
-        $p = Product::create($r->only(['sku','name','description','price','visible']));
+        // Auto-generate SKU
+        $sku = 'SKU' . strtoupper(Str::random(8));
+        
+        $p = Product::create([
+            'sku' => $sku,
+            'name' => $r->input('name'),
+            'description' => $r->input('description'),
+            'price' => $r->input('price'),
+            'visible' => $r->has('visible') ? 1 : 0
+        ]);
         Inventory::create(['product_id'=>$p->id,'stock'=>$r->input('stock',0)]);
         
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully!');
@@ -66,6 +75,11 @@ class AdminController extends Controller
     {
         $product->delete();
         return response()->noContent();
+    }
+
+    public function show(Product $product)
+    {
+        return response()->json($product->load('inventory'));
     }
 
     // Customers

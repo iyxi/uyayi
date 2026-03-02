@@ -11,19 +11,22 @@
     
     <style>
         :root {
-            /* Customer theme colors */
-            --primary-green: #8b9c41;
-            --soft-yellow: #F4E4A6;
-            --warm-beige: #F5F0E8;
-            --soft-brown: #8B7355;
-            --text-dark: #3D3D3D;
+            /* Theme colors - matching customer layout */
+            --primary-blue: #7CB9E8;
+            --primary-blue-dark: #5A9FD4;
+            --soft-cream: #FFF9F0;
+            --warm-beige: #F5EDE4;
+            --soft-tan: #D4C4B0;
+            --accent-brown: #A89078;
+            --text-dark: #4A3F35;
+            --text-light: #6B5D52;
             
             /* Admin layout */
             --sidebar-width: 260px;
             --sidebar-bg: #ffffff;
             --sidebar-border: #e5e7eb;
             --text-muted: #6b7280;
-            --bg-light: var(--warm-beige);
+            --bg-light: var(--soft-cream);
             --success-green: #10b981;
             --warning-orange: #f59e0b;
         }
@@ -62,7 +65,7 @@
         .sidebar-brand .logo {
             width: 36px;
             height: 36px;
-            background: var(--primary-green);
+            background: var(--primary-blue);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -75,7 +78,7 @@
             font-size: 1.5rem;
             font-weight: 700;
             font-family: 'Yellowtail', cursive;
-            color: var(--primary-green);
+            color: var(--primary-blue);
         }
 
         .sidebar-user {
@@ -89,7 +92,7 @@
         .sidebar-user .avatar {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, var(--primary-green), var(--soft-brown));
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-brown));
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -145,14 +148,14 @@
         }
 
         .sidebar-link:hover {
-            background: var(--soft-yellow);
-            color: var(--primary-green);
+            background: var(--warm-beige);
+            color: var(--primary-blue);
         }
 
         .sidebar-link.active {
-            background: var(--soft-yellow);
-            color: var(--primary-green);
-            border-left-color: var(--primary-green);
+            background: var(--warm-beige);
+            color: var(--primary-blue);
+            border-left-color: var(--primary-blue);
         }
 
         .sidebar-link i {
@@ -215,7 +218,7 @@
         }
 
         .breadcrumb-nav a:hover {
-            color: var(--primary-green);
+            color: var(--primary-blue);
         }
 
         .breadcrumb-nav .separator {
@@ -275,13 +278,13 @@
         }
 
         .btn-view-shop {
-            background: var(--primary-green);
+            background: var(--primary-blue);
             color: white;
             border-radius: 25px;
         }
 
         .btn-view-shop:hover {
-            background: var(--soft-brown);
+            background: var(--accent-brown);
             color: white;
         }
 
@@ -350,12 +353,12 @@
         }
 
         .nav-tabs-custom .nav-link:hover {
-            background: var(--soft-yellow);
+            background: var(--warm-beige);
             color: var(--text-dark);
         }
 
         .nav-tabs-custom .nav-link.active {
-            background: var(--primary-green);
+            background: var(--primary-blue);
             color: white;
         }
 
@@ -424,8 +427,8 @@
         }
 
         .filter-btn:hover {
-            border-color: var(--primary-green);
-            color: var(--primary-green);
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
         }
 
         .table-custom {
@@ -464,7 +467,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-green), var(--soft-brown));
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-brown));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -519,16 +522,22 @@
             border-radius: 25px;
             font-size: 0.8rem;
             font-weight: 500;
-            border: 1px solid var(--primary-green);
+            border: 1px solid var(--primary-blue);
             background: white;
-            color: var(--primary-green);
+            color: var(--primary-blue);
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .action-btn:hover {
-            background: var(--primary-green);
+            background: var(--primary-blue);
             color: white;
+        }
+
+        /* Hide browser's native password reveal button */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
         }
 
         /* Responsive */
@@ -564,16 +573,16 @@
             height: 4px;
             background: repeating-linear-gradient(
                 90deg,
-                var(--primary-green) 0px,
-                var(--primary-green) 10px,
-                var(--soft-yellow) 10px,
-                var(--soft-yellow) 20px
+                var(--primary-blue) 0px,
+                var(--primary-blue) 10px,
+                var(--warm-beige) 10px,
+                var(--warm-beige) 20px
             );
         }
 
         .btn-primary-custom {
-            background-color: var(--primary-green);
-            border-color: var(--primary-green);
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
             color: white;
             font-weight: 600;
             border-radius: 25px;
@@ -582,35 +591,35 @@
         }
 
         .btn-primary-custom:hover {
-            background-color: var(--soft-brown);
-            border-color: var(--soft-brown);
+            background-color: var(--accent-brown);
+            border-color: var(--accent-brown);
             color: white;
             transform: translateY(-2px);
         }
 
         .btn-primary {
-            background-color: var(--primary-green);
-            border-color: var(--primary-green);
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
         }
 
         .btn-primary:hover {
-            background-color: var(--soft-brown);
-            border-color: var(--soft-brown);
+            background-color: var(--accent-brown);
+            border-color: var(--accent-brown);
         }
 
         .btn-outline-primary {
-            color: var(--primary-green);
-            border-color: var(--primary-green);
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
         }
 
         .btn-outline-primary:hover {
-            background-color: var(--primary-green);
-            border-color: var(--primary-green);
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
             color: white;
         }
 
         .eco-badge {
-            background-color: var(--primary-green);
+            background-color: var(--primary-blue);
             color: white;
             padding: 5px 12px;
             border-radius: 20px;
@@ -788,3 +797,4 @@
     @stack('scripts')
 </body>
 </html>
+

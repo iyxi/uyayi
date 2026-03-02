@@ -43,6 +43,7 @@ Route::prefix('admin')->middleware(['auth','can:admin-area'])->group(function(){
     Route::get('/products/create', function() {
         return redirect()->route('admin.products.index');
     })->name('admin.products.create');
+    Route::get('/products/{product}/json', [AdminController::class, 'show'])->name('admin.products.show');
     Route::patch('/products/{product}', [AdminController::class, 'update'])->name('admin.products.update');
     Route::delete('/products/{product}', [AdminController::class, 'destroy'])->name('admin.products.destroy');
     

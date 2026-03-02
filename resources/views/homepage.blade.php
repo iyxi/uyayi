@@ -1,7 +1,7 @@
 @extends('layouts.customer')
 
-@section('title', 'Uyayi - Eco-Friendly Children\'s Clothing')
-@section('description', 'Discover beautiful, sustainable children\'s clothing at Uyayi. Browse our collection of eco-friendly dresses, tops, and more for your little ones.')
+@section('title', 'Uyayi - Gentle Infant Toiletries for Your Little One')
+@section('description', 'Discover safe, gentle, and reliable infant toiletries for your baby\'s delicate skin.')
 
 @section('content')
 <!-- Hero Section -->
@@ -10,7 +10,7 @@
         <div class="row align-items-center">
             <div class="col-lg-6">
                 <div class="hero-content">
-                    <h1 class="display-4 fw-bold mb-3" style="color: var(--primary-green);">
+                    <h1 class="display-4 fw-bold mb-3" style="color: var(--primary-blue-dark);">
                         Welcome to Uyayi 
                         <span style="font-family: 'Yellowtail';"></span>
                     </h1>
@@ -32,7 +32,7 @@
             </div>
             <div class="col-lg-6 text-center">
                 <div class="hero-image-placeholder">
-                    <img src=
+                    <img src="{{ asset('img/hero.jpg') }}" alt="description"
                          class="img-fluid rounded-3 shadow-lg"
                          style="max-height: 400px; object-fit: cover;">
                 </div>
@@ -45,7 +45,7 @@
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold" style="color: var(--primary-green);">Featured Products</h2>
+            <h2 class="display-5 fw-bold" style="color: var(--primary-blue-dark);">Featured Products</h2>
             <p class="lead text-muted">Carefully selected essentials for your baby’s daily hygiene and comfort.</p>
         </div>
         
@@ -65,7 +65,7 @@
 <section class="py-5" style="background-color: white;">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold" style="color: var(--primary-green);">Shop by Category</h2>
+            <h2 class="display-5 fw-bold" style="color: var(--primary-blue-dark);">Shop by Category</h2>
             <p class="lead text-muted">Find the right toiletries for your little one’s needs.</p>
         </div>
         
@@ -73,7 +73,7 @@
             <div class="col-md-3 col-sm-6">
                 <div class="category-card text-center p-4 h-100 bg-light rounded-3">
                     <div class="category-icon mb-3">
-                        <i class="bi bi-flower1 display-4" style="color: var(--primary-green);"></i>
+                        <i class="bi bi-flower1 display-4" style="color: var(--primary-blue);"></i>
                     </div>
                     <h5 class="fw-bold">Bath Essentials</h5>
                     <p class="text-muted mb-3">Gentle baby wash, shampoo, and soap for delicate skin.</p>
@@ -84,7 +84,7 @@
             <div class="col-md-3 col-sm-6">
                 <div class="category-card text-center p-4 h-100 bg-light rounded-3">
                     <div class="category-icon mb-3">
-                        <i class="bi bi-house-heart display-4" style="color: var(--soft-brown);"></i>
+                        <i class="bi bi-house-heart display-4" style="color: var(--accent-brown);"></i>
                     </div>
                     <h5 class="fw-bold">Diapering Care</h5>
                     <p class="text-muted mb-3">Diaper rash cream, wipes, and changing essentials.</p>
@@ -95,7 +95,7 @@
             <div class="col-md-3 col-sm-6">
                 <div class="category-card text-center p-4 h-100 bg-light rounded-3">
                     <div class="category-icon mb-3">
-                        <i class="bi bi-stars display-4" style="color: var(--primary-green);"></i>
+                        <i class="bi bi-stars display-4" style="color: var(--primary-blue);"></i>
                     </div>
                     <h5 class="fw-bold">Skin Care</h5>
                     <p class="text-muted mb-3">Baby lotion, oils, powders, and moisturizing products.</p>
@@ -106,7 +106,7 @@
             <div class="col-md-3 col-sm-6">
                 <div class="category-card text-center p-4 h-100 bg-light rounded-3">
                     <div class="category-icon mb-3">
-                        <i class="bi bi-tag display-4" style="color: var(--soft-brown);"></i>
+                        <i class="bi bi-tag display-4" style="color: var(--accent-brown);"></i>
                     </div>
                     <h5 class="fw-bold">Health & Hygiene</h5>
                     <p class="text-muted mb-3">Baby-safe sanitizers, cotton buds, nail care, and grooming kits.</p>
@@ -121,7 +121,7 @@
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold" style="color: var(--primary-green);">Why Choose Uyayi?</h2>
+            <h2 class="display-5 fw-bold" style="color: var(--primary-blue-dark);">Why Choose Uyayi?</h2>
         </div>
         
         <div class="row g-4">
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <p class="card-text text-muted small flex-grow-1">${product.description || 'Beautiful eco-friendly clothing for children'}</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="price">
-                                        <span class="fw-bold" style="color: var(--primary-green);">$${product.price}</span>
+                                        <span class="fw-bold" style="color: var(--primary-blue-dark);">$${product.price}</span>
                                     </div>
                                     <button class="btn btn-primary-custom btn-sm" onclick="addToCart(${product.id}, ${JSON.stringify(product)})">
                                         <i class="bi bi-bag-plus"></i> Add

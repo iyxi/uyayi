@@ -5,11 +5,11 @@
 
 @section('content')
 <!-- Page Header -->
-<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-yellow);">
+<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-tan);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <h1 class="fw-bold mb-0" style="color: var(--primary-green);">
+                <h1 class="fw-bold mb-0" style="color: var(--primary-blue-dark);">
                     <i class="bi bi-bag"></i> Shopping Cart
                 </h1>
                 <p class="text-muted mb-0">Review your items before checkout</p>
@@ -78,7 +78,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Subtotal:</span>
-                                <span class="fw-bold" id="cart-subtotal">$0.00</span>
+                                <span class="fw-bold" id="cart-subtotal">₱0.00</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Shipping:</span>
@@ -86,12 +86,12 @@
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Tax:</span>
-                                <span class="fw-bold" id="tax-amount">$0.00</span>
+                                <span class="fw-bold" id="tax-amount">₱0.00</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold fs-5">Total:</span>
-                                <span class="fw-bold fs-5" style="color: var(--primary-green);" id="cart-total">$0.00</span>
+                                <span class="fw-bold fs-5" style="color: var(--primary-blue-dark);" id="cart-total">₱0.00</span>
                             </div>
                             
                             <!-- Promo Code -->
@@ -115,9 +115,9 @@
                     </div>
                     
                     <!-- Eco Message -->
-                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, var(--soft-yellow) 0%, var(--warm-beige) 100%);">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, var(--warm-beige) 0%, var(--soft-cream) 100%);">
                         <div class="card-body text-center">
-                            <i class="bi bi-leaf display-4" style="color: var(--primary-green);"></i>
+                            <i class="bi bi-leaf display-4" style="color: var(--primary-blue);"></i>
                             <h6 class="fw-bold mt-2">Eco-Friendly Choice!</h6>
                             <p class="small mb-0">Every purchase helps support sustainable fashion and a healthier planet for our children.</p>
                         </div>
@@ -131,7 +131,7 @@
 <!-- Recommended Products -->
 <section class="py-5" style="background-color: var(--warm-beige);">
     <div class="container">
-        <h3 class="fw-bold mb-4 text-center" style="color: var(--primary-green);">You Might Also Like</h3>
+        <h3 class="fw-bold mb-4 text-center" style="color: var(--primary-blue-dark);">You Might Also Like</h3>
         <div class="row" id="recommended-products">
             <!-- Recommended products will be loaded here -->
         </div>
@@ -193,8 +193,8 @@ function loadCartItems() {
                         </div>
                     </div>
                     <div class="col-md-2 col-4 mb-3 mb-md-0 text-center">
-                        <div class="fw-bold" style="color: var(--primary-green);">$${subtotal}</div>
-                        <small class="text-muted">$${product.price} each</small>
+                        <div class="fw-bold" style="color: var(--primary-blue-dark);">₱${subtotal}</div>
+                        <small class="text-muted">₱${product.price} each</small>
                     </div>
                     <div class="col-md-2 col-4 text-center">
                         <button class="btn btn-outline-danger btn-sm" onclick="removeFromCart(${product.id})">
@@ -250,21 +250,21 @@ function updateCartTotal() {
         return total + (parseFloat(item.product.price) * item.quantity);
     }, 0);
     
-    const shippingThreshold = 50;
-    const shipping = subtotal >= shippingThreshold ? 0 : 9.99;
+    const shippingThreshold = 1000;
+    const shipping = subtotal === 0 ? 0 : (subtotal >= shippingThreshold ? 0 : 300);
     const taxRate = 0.08; // 8% tax
     const tax = subtotal * taxRate;
     const total = subtotal + shipping + tax;
     
-    document.getElementById('cart-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('shipping-cost').textContent = shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`;
-    document.getElementById('tax-amount').textContent = `$${tax.toFixed(2)}`;
-    document.getElementById('cart-total').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('cart-subtotal').textContent = `₱${subtotal.toFixed(2)}`;
+    document.getElementById('shipping-cost').textContent = shipping === 0 ? 'Free' : `₱${shipping.toFixed(2)}`;
+    document.getElementById('tax-amount').textContent = `₱${tax.toFixed(2)}`;
+    document.getElementById('cart-total').textContent = `₱${total.toFixed(2)}`;
     
     // Show shipping message
     if (subtotal > 0 && subtotal < shippingThreshold) {
         const remaining = shippingThreshold - subtotal;
-        showShippingMessage(`Add $${remaining.toFixed(2)} more for free shipping!`);
+        showShippingMessage(`Add ₱${remaining.toFixed(2)} more for free shipping!`);
     }
 }
 
@@ -326,7 +326,7 @@ function loadRecommendedProducts() {
                              class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
                         <div class="card-body d-flex flex-column">
                             <h6 class="card-title fw-bold">${product.name}</h6>
-                            <p class="text-muted mb-2 flex-grow-1">$${product.price}</p>
+                            <p class="text-muted mb-2 flex-grow-1">₱${product.price}</p>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-outline-success btn-sm flex-grow-1" onclick="viewProduct(${product.id})">
                                     View
@@ -373,7 +373,7 @@ window.removeFromCart = removeFromCart;
 
 .eco-badge {
     display: inline-block;
-    background-color: var(--primary-green);
+    background-color: var(--primary-blue);
     color: white;
     padding: 2px 8px;
     border-radius: 12px;

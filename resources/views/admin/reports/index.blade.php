@@ -21,7 +21,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-muted mb-1">Total Sales</p>
-                        <h3 class="mb-0">${{ number_format($stats['total_sales'], 2) }}</h3>
+                        <h3 class="mb-0">₱{{ number_format($stats['total_sales'], 2) }}</h3>
                     </div>
                     <div class="stat-icon bg-success bg-opacity-10 text-success">
                         <i class="bi bi-currency-dollar"></i>
@@ -100,7 +100,7 @@
                                 <tr>
                                     <td>{{ date('F Y', mktime(0, 0, 0, $sale->month, 1, $sale->year)) }}</td>
                                     <td>{{ $sale->count }}</td>
-                                    <td><strong>${{ number_format($sale->total, 2) }}</strong></td>
+                                    <td><strong>₱{{ number_format($sale->total, 2) }}</strong></td>
                                 </tr>
                                 @endforeach
                             </tbody>

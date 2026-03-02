@@ -21,7 +21,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-muted mb-1">Total Received</p>
-                        <h3 class="mb-0">${{ number_format($stats['total'], 2) }}</h3>
+                        <h3 class="mb-0">₱{{ number_format($stats['total'], 2) }}</h3>
                     </div>
                     <div class="stat-icon bg-success bg-opacity-10 text-success">
                         <i class="bi bi-check-circle"></i>
@@ -36,7 +36,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-muted mb-1">Pending</p>
-                        <h3 class="mb-0">${{ number_format($stats['pending'], 2) }}</h3>
+                        <h3 class="mb-0">₱{{ number_format($stats['pending'], 2) }}</h3>
                     </div>
                     <div class="stat-icon bg-warning bg-opacity-10 text-warning">
                         <i class="bi bi-clock"></i>
@@ -99,7 +99,7 @@
                                     <span class="text-muted">Guest</span>
                                 @endif
                             </td>
-                            <td><strong>${{ number_format($payment->amount, 2) }}</strong></td>
+                            <td><strong>₱{{ number_format($payment->amount, 2) }}</strong></td>
                             <td>{{ $payment->payment_method ?? 'N/A' }}</td>
                             <td>
                                 @if($payment->status == 'Paid')

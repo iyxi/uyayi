@@ -119,7 +119,7 @@
 .avatar-lg {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--primary-green), var(--soft-brown));
+    background: linear-gradient(135deg, var(--primary-blue), var(--accent-brown));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -130,3 +130,4 @@
 }
 </style>
 @endsection
+

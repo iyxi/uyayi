@@ -9,8 +9,8 @@
             <div class="card shadow-lg border-0" style="border-radius: 15px;">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold" style="color: var(--primary-green);">Join Uyayi!</h2>
-                        <p class="text-muted">Create your account for eco-friendly children's fashion</p>
+                        <h2 class="fw-bold" style="color: var(--primary-blue-dark);">Join Uyayi!</h2>
+                        <p class="text-muted">Gentle Infant Toiletries for Your Little One</p>
                     </div>
 
                     @if ($errors->any())
@@ -118,8 +118,8 @@
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
                             <label class="form-check-label" for="terms">
-                                I agree to the <a href="#" style="color: var(--primary-green);">Terms of Service</a> 
-                                and <a href="#" style="color: var(--primary-green);">Privacy Policy</a>
+                                I agree to the <a href="#" style="color: var(--primary-blue-dark);">Terms of Service</a> 
+                                and <a href="#" style="color: var(--primary-blue-dark);">Privacy Policy</a>
                             </label>
                         </div>
 
@@ -134,7 +134,7 @@
                         <div class="text-center">
                             <p class="mb-0">
                                 Already have an account? 
-                                <a href="{{ route('login') }}" style="color: var(--primary-green); text-decoration: none;">
+                                <a href="{{ route('login') }}" style="color: var(--primary-blue-dark); text-decoration: none;">
                                     <strong>Sign in here</strong>
                                 </a>
                             </p>

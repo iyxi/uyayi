@@ -14,10 +14,10 @@
     <!-- Products Summary -->
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
-            <div class="stat-icon" style="background: var(--soft-yellow); color: var(--primary-green);">
+            <div class="stat-icon" style="background: var(--warm-beige); color: var(--primary-blue);">
                 <i class="bi bi-box-seam"></i>
             </div>
-            <div class="stat-value" style="color: var(--primary-green);">{{ $stats['products'] }}</div>
+            <div class="stat-value" style="color: var(--primary-blue);">{{ $stats['products'] }}</div>
             <div class="stat-label">Total Products</div>
         </div>
     </div>
@@ -36,10 +36,10 @@
     <!-- Users Summary -->
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
-            <div class="stat-icon" style="background: var(--warm-beige); color: var(--soft-brown);">
+            <div class="stat-icon" style="background: var(--warm-beige); color: var(--accent-brown);">
                 <i class="bi bi-people"></i>
             </div>
-            <div class="stat-value" style="color: var(--soft-brown);">{{ $stats['users'] }}</div>
+            <div class="stat-value" style="color: var(--accent-brown);">{{ $stats['users'] }}</div>
             <div class="stat-label">Registered Users</div>
         </div>
     </div>
@@ -90,7 +90,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td><strong>${{ number_format($order->total_amount ?? $order->total, 2) }}</strong></td>
+                                <td><strong>₱{{ number_format($order->total_amount ?? $order->total, 2) }}</strong></td>
                                 <td>
                                     <span class="status-badge status-{{ strtolower($order->status) }}">
                                         {{ ucfirst($order->status) }}

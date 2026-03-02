@@ -31,7 +31,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-muted mb-1">Total Expenses</p>
-                        <h3 class="mb-0">${{ number_format($stats['total'], 2) }}</h3>
+                        <h3 class="mb-0">₱{{ number_format($stats['total'], 2) }}</h3>
                     </div>
                     <div class="stat-icon bg-danger bg-opacity-10 text-danger">
                         <i class="bi bi-wallet2"></i>
@@ -46,7 +46,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-muted mb-1">This Month</p>
-                        <h3 class="mb-0">${{ number_format($stats['this_month'], 2) }}</h3>
+                        <h3 class="mb-0">₱{{ number_format($stats['this_month'], 2) }}</h3>
                     </div>
                     <div class="stat-icon bg-warning bg-opacity-10 text-warning">
                         <i class="bi bi-calendar-month"></i>
@@ -94,7 +94,7 @@
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
                             <td>{{ $expense->description }}</td>
-                            <td><strong class="text-danger">${{ number_format($expense->amount, 2) }}</strong></td>
+                            <td><strong class="text-danger">₱{{ number_format($expense->amount, 2) }}</strong></td>
                             <td>
                                 <form action="{{ route('admin.expenses.destroy', $expense->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this expense?')">
                                     @csrf
@@ -141,7 +141,7 @@
                     <div class="mb-3">
                         <label class="form-label">Amount</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">₱</span>
                             <input type="number" class="form-control" name="amount" step="0.01" min="0" required>
                         </div>
                     </div>

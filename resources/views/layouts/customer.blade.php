@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Uyayi - Children\'s Eco-Friendly Clothing')</title>
+    <title>@yield('title', 'Uyayi - Gentle Infant Toiletries')</title>
     <meta name="description" content="@yield('description', 'Discover beautiful, eco-friendly children\'s clothing at Uyayi. Sustainable fashion for little ones.')">
     
     <!-- Bootstrap CSS -->
@@ -18,28 +18,32 @@
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-green: #8b9c41;
-            --soft-yellow: #F4E4A6;
-            --warm-beige: #F5F0E8;
-            --soft-brown: #8B7355;
-            --text-dark: #3D3D3D;
+            --primary-blue: #7CB9E8;
+            --primary-blue-dark: #5A9FD4;
+            --soft-cream: #FFF9F0;
+            --warm-beige: #F5EDE4;
+            --soft-tan: #D4C4B0;
+            --accent-brown: #A89078;
+            --text-dark: #4A3F35;
+            --text-light: #6B5D52;
+            --white: #FFFFFF;
         }
 
         body {
             font-family: 'Open Sans', sans-serif;
             color: var(--text-dark);
-            background-color: var(--warm-beige);
+            background-color: var(--soft-cream);
         }
 
         .navbar-brand {
             font-family: 'Yellowtail', cursive;
             font-size: 2rem;
-            color: var(--primary-green) !important;
+            color: var(--primary-blue-dark) !important;
         }
 
         .navbar-custom {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            background-color: var(--white);
+            box-shadow: 0 2px 8px rgba(122, 185, 232, 0.15);
         }
 
         .nav-link {
@@ -49,13 +53,18 @@
         }
 
         .nav-link:hover {
-            color: var(--primary-green) !important;
+            color: var(--primary-blue-dark) !important;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue-dark) !important;
+            font-weight: 600;
         }
 
         .btn-primary-custom {
-            background-color: var(--primary-green);
-            border-color: var(--primary-green);
-            color: white;
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
             font-weight: 600;
             border-radius: 25px;
             padding: 10px 25px;
@@ -63,14 +72,27 @@
         }
 
         .btn-primary-custom:hover {
-            background-color: var(--soft-brown);
-            border-color: var(--soft-brown);
+            background-color: var(--primary-blue-dark);
+            border-color: var(--primary-blue-dark);
+            color: var(--white);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 185, 232, 0.4);
+        }
+
+        .btn-outline-success {
+            color: var(--primary-blue-dark);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-outline-success:hover {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
         }
 
         .cart-badge {
-            background-color: var(--primary-green);
-            color: white;
+            background-color: var(--accent-brown);
+            color: var(--white);
             border-radius: 50%;
             padding: 2px 6px;
             font-size: 0.75rem;
@@ -80,8 +102,8 @@
         }
 
         .hero-section {
-            background: linear-gradient(135deg, var(--soft-yellow) 0%, var(--warm-beige) 100%);
-            border-bottom: 3px solid var(--primary-green);
+            background: linear-gradient(135deg, var(--warm-beige) 0%, var(--soft-cream) 100%);
+            border-bottom: 3px solid var(--primary-blue);
         }
 
         .product-card {
@@ -89,37 +111,125 @@
             border-radius: 15px;
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: white;
+            background: var(--white);
+            border: 1px solid rgba(212, 196, 176, 0.3);
         }
 
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(124, 185, 232, 0.2);
         }
 
         .footer-custom {
-            background-color: var(--primary-green);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+            color: var(--white);
         }
 
         .decorative-border {
             height: 4px;
-            background: repeating-linear-gradient(
+            background: linear-gradient(
                 90deg,
-                var(--primary-green) 0px,
-                var(--primary-green) 10px,
-                var(--soft-yellow) 10px,
-                var(--soft-yellow) 20px
+                var(--primary-blue) 0%,
+                var(--soft-tan) 50%,
+                var(--primary-blue) 100%
             );
         }
 
         .eco-badge {
-            background-color: var(--primary-green);
-            color: white;
+            background-color: var(--primary-blue);
+            color: var(--white);
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
+        }
+
+        /* Category cards */
+        .category-card {
+            background-color: var(--white) !important;
+            border: 1px solid rgba(212, 196, 176, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 5px 15px rgba(124, 185, 232, 0.15);
+        }
+
+        .category-card i {
+            color: var(--primary-blue) !important;
+        }
+
+        /* Section backgrounds */
+        .bg-light {
+            background-color: var(--warm-beige) !important;
+        }
+
+        /* Text colors for visibility */
+        .text-success {
+            color: var(--primary-blue-dark) !important;
+        }
+
+        .text-muted {
+            color: var(--text-light) !important;
+        }
+
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-dark);
+        }
+
+        .display-4, .display-5 {
+            color: var(--primary-blue-dark) !important;
+        }
+
+        /* Form elements */
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(124, 185, 232, 0.25);
+        }
+
+        /* Hide browser's native password reveal button */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
+
+        /* Links */
+        a {
+            color: var(--primary-blue-dark);
+        }
+
+        a:hover {
+            color: var(--primary-blue);
+        }
+
+        /* Alerts */
+        .alert-success {
+            background-color: rgba(124, 185, 232, 0.15);
+            border-color: var(--primary-blue);
+            color: var(--text-dark);
+        }
+
+        /* Price styling */
+        .price .fw-bold {
+            color: var(--primary-blue-dark) !important;
+        }
+
+        /* Feature items */
+        .feature-item h5 {
+            color: var(--text-dark);
+        }
+
+        /* Dropdown */
+        .dropdown-menu {
+            border: 1px solid rgba(212, 196, 176, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--warm-beige);
+            color: var(--primary-blue-dark);
         }
     </style>
 
@@ -132,8 +242,8 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('homepage') }}">
-                Uyayi
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('homepage') }}">
+                <img src="{{ asset('img/logo.png') }}" alt="Uyayi Logo" style="height: 70px; margin-right: 6px;">
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

@@ -9,7 +9,7 @@
             <div class="card shadow-lg border-0" style="border-radius: 15px;">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold" style="color: var(--primary-green);">Welcome Back!</h2>
+                        <h2 class="fw-bold" style="color: var(--primary-blue-dark);">Welcome Back!</h2>
                         <p class="text-muted">Sign in to your Uyayi account</p>
                     </div>
 
@@ -89,7 +89,7 @@
                         <div class="text-center">
                             <p class="mb-0">
                                 Don't have an account? 
-                                <a href="{{ route('register') }}" style="color: var(--primary-green); text-decoration: none;">
+                                <a href="{{ route('register') }}" style="color: var(--primary-blue-dark); text-decoration: none;">
                                     <strong>Sign up here</strong>
                                 </a>
                             </p>

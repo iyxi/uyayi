@@ -5,11 +5,11 @@
 
 @section('content')
 <!-- Page Header -->
-<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-yellow);">
+<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-tan);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <h1 class="fw-bold mb-0" style="color: var(--primary-green);">
+                <h1 class="fw-bold mb-0" style="color: var(--primary-blue);">
                     <i class="bi bi-credit-card"></i> Checkout
                 </h1>
                 <p class="text-muted mb-0">Secure checkout for your eco-friendly items</p>
@@ -319,7 +319,7 @@
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold fs-5">Total:</span>
-                                <span class="fw-bold fs-5" style="color: var(--primary-green);" id="checkout-total">$0.00</span>
+                                <span class="fw-bold fs-5" style="color: var(--primary-blue);" id="checkout-total">$0.00</span>
                             </div>
                             
                             <!-- Place Order Button -->
@@ -564,12 +564,12 @@ function loginUser() {
 }
 
 .checkout-step.active .step-circle {
-    background-color: var(--primary-green);
+    background-color: var(--primary-blue);
     color: white;
 }
 
 .checkout-step.completed .step-circle {
-    background-color: var(--primary-green);
+    background-color: var(--primary-blue);
     color: white;
 }
 
@@ -585,7 +585,7 @@ function loginUser() {
 }
 
 .checkout-step.completed:not(:last-child)::after {
-    background-color: var(--primary-green);
+    background-color: var(--primary-blue);
 }
 
 .form-check-label {
@@ -600,7 +600,7 @@ function loginUser() {
 }
 
 .shipping-options .form-check:hover {
-    border-color: var(--primary-green);
+    border-color: var(--primary-blue);
     background-color: rgba(139, 154, 71, 0.05);
 }
 

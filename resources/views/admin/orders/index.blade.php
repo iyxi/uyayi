@@ -79,7 +79,7 @@
                                 @endif
                             </td>
                             <td>
-                                <strong>${{ number_format($order->total_amount, 2) }}</strong>
+                                <strong>₱{{ number_format($order->total_amount, 2) }}</strong>
                             </td>
                             <td>
                                 <select class="form-select form-select-sm status-select" 

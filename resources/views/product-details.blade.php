@@ -29,7 +29,7 @@
 <!-- Related Products -->
 <section class="py-5" style="background-color: var(--warm-beige);">
     <div class="container">
-        <h3 class="fw-bold mb-4" style="color: var(--primary-green);">You Might Also Like</h3>
+        <h3 class="fw-bold mb-4" style="color: var(--primary-blue);">You Might Also Like</h3>
         <div class="row" id="related-products">
             <!-- Related products will be loaded here -->
         </div>
@@ -130,7 +130,7 @@ function displayProduct(product) {
             <div class="product-info">
                 <div class="eco-badge mb-3">🌱 Eco-Friendly Material</div>
                 
-                <h1 class="fw-bold mb-3" style="color: var(--primary-green);">${product.name}</h1>
+                <h1 class="fw-bold mb-3" style="color: var(--primary-blue);">${product.name}</h1>
                 
                 <div class="product-rating mb-3">
                     <div class="d-flex align-items-center">
@@ -146,7 +146,7 @@ function displayProduct(product) {
                 </div>
                 
                 <div class="price mb-4">
-                    <span class="display-5 fw-bold" style="color: var(--primary-green);">$${product.price}</span>
+                    <span class="display-5 fw-bold" style="color: var(--primary-blue);">$${product.price}</span>
                     <span class="text-muted text-decoration-line-through ms-2">$${(parseFloat(product.price) * 1.25).toFixed(2)}</span>
                     <span class="badge bg-success ms-2">20% OFF</span>
                 </div>
@@ -375,8 +375,8 @@ document.addEventListener('click', function(e) {
 }
 
 .btn-check:checked + .btn-outline-secondary {
-    background-color: var(--primary-green);
-    border-color: var(--primary-green);
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
     color: white;
 }
 </style>
