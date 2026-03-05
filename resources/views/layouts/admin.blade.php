@@ -688,11 +688,6 @@
                 <span>Stock Management</span>
             </a>
 
-            <a href="{{ route('admin.inventory.restocks') }}" class="sidebar-link {{ request()->routeIs('admin.inventory.restocks') ? 'active' : '' }}">
-                <i class="bi bi-arrow-repeat"></i>
-                <span>Restock History</span>
-            </a>
-
             <div class="nav-section">
                 <div class="nav-section-title">Finance</div>
             </div>

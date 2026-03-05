@@ -68,9 +68,8 @@
                             <td><code>{{ $product->sku }}</code></td>
                             <td><strong>₱{{ number_format($product->price, 2) }}</strong></td>
                             <td>
-                                @php $stock = $product->inventory->stock ?? 0 @endphp
-                                <span class="badge bg-{{ $stock > 10 ? 'success' : ($stock > 0 ? 'warning' : 'danger') }}">
-                                    {{ $stock }} units
+                                <span class="badge bg-{{ $product->stock > 10 ? 'success' : ($product->stock > 0 ? 'warning' : 'danger') }}">
+                                    {{ $product->stock }} units
                                 </span>
                             </td>
                             <td>
@@ -145,12 +144,6 @@
                             <div class="mb-3">
                                 <label for="stock" class="form-label">Initial Stock <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" name="stock" id="stock" min="0" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">SKU</label>
-                                <p class="form-control-plaintext text-muted">Auto-generated on create</p>
                             </div>
                         </div>
                         <div class="col-12">
@@ -297,7 +290,7 @@ function editProduct(id) {
             document.getElementById('edit_price').value = product.price;
             document.getElementById('edit_description').value = product.description || '';
             document.getElementById('edit_visible').checked = product.visible == 1;
-            document.getElementById('edit_stock').value = product.inventory ? product.inventory.stock : 0;
+            document.getElementById('edit_stock').value = product.stock || 0;
             
             // Set form action
             document.getElementById('editProductForm').action = `/admin/products/${id}`;

@@ -55,7 +55,6 @@
                     </thead>
                     <tbody>
                         @foreach($products as $product)
-                        @php $stock = $product->inventory->stock ?? 0 @endphp
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
@@ -71,12 +70,12 @@
                             </td>
                             <td><code>{{ $product->sku }}</code></td>
                             <td>
-                                <strong class="{{ $stock < 10 ? 'text-danger' : 'text-success' }}">{{ $stock }}</strong> units
+                                <strong class="{{ $product->stock < 10 ? 'text-danger' : 'text-success' }}">{{ $product->stock }}</strong> units
                             </td>
                             <td>
-                                @if($stock == 0)
+                                @if($product->stock == 0)
                                     <span class="badge bg-danger">Out of Stock</span>
-                                @elseif($stock < 10)
+                                @elseif($product->stock < 10)
                                     <span class="badge bg-warning">Low Stock</span>
                                 @else
                                     <span class="badge bg-success">In Stock</span>
@@ -84,7 +83,7 @@
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#restockModal" 
-                                    onclick="setRestockProduct({{ $product->id }}, '{{ $product->name }}', {{ $stock }})">
+                                    onclick="setRestockProduct({{ $product->id }}, '{{ $product->name }}', {{ $product->stock }})">
                                     <i class="bi bi-plus-lg"></i> Restock
                                 </button>
                             </td>

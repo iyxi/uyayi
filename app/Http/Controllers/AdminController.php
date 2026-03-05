@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Payment;
@@ -23,9 +22,7 @@ class AdminController extends Controller
             'orders' => Order::count(),
             'users' => User::count(),
             'recent_orders' => Order::latest()->take(5)->with('user')->get(),
-            'low_stock' => Product::whereHas('inventory', function($q) {
-                $q->where('stock', '<', 10);
-            })->with('inventory')->take(5)->get()
+            'low_stock' => Product::where('stock', '<', 10)->take(5)->get()
         ];
         
         return view('admin.dashboard', compact('stats'));
@@ -34,7 +31,7 @@ class AdminController extends Controller
     // Product CRUD
     public function index()
     {
-        $products = Product::with('inventory')->paginate(20);
+        $products = Product::paginate(20);
         return view('admin.products.index', compact('products'));
     }
 
@@ -55,19 +52,16 @@ class AdminController extends Controller
             'name' => $r->input('name'),
             'description' => $r->input('description'),
             'price' => $r->input('price'),
+            'stock' => $r->input('stock', 0),
             'visible' => $r->has('visible') ? 1 : 0
         ]);
-        Inventory::create(['product_id'=>$p->id,'stock'=>$r->input('stock',0)]);
         
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully!');
     }
 
     public function update(Request $r, Product $product)
     {
-        $product->update($r->only(['name','description','price','visible']));
-        if($r->has('stock')){
-            $product->inventory()->update(['stock'=>$r->input('stock')]);
-        }
+        $product->update($r->only(['name','description','price','stock','visible']));
         return response()->json($product);
     }
 
@@ -79,7 +73,7 @@ class AdminController extends Controller
 
     public function show(Product $product)
     {
-        return response()->json($product->load('inventory'));
+        return response()->json($product);
     }
 
     // Customers
@@ -92,44 +86,25 @@ class AdminController extends Controller
         return view('admin.customers.index', compact('customers'));
     }
 
-    // Inventory
+    // Inventory / Stock Management
     public function inventory()
     {
-        $products = Product::with('inventory')->paginate(20);
+        $products = Product::paginate(20);
         return view('admin.inventory.index', compact('products'));
     }
 
     public function restock(Request $r)
     {
-        $pid = $r->input('product_id');
+        $product = Product::findOrFail($r->input('product_id'));
         $qty = (int)$r->input('quantity');
-        $inv = Inventory::firstOrCreate(['product_id'=>$pid]);
-        $inv->stock += $qty;
-        $inv->save();
-        
-        DB::table('restocks')->insert([
-            'product_id'=>$pid,
-            'added_quantity'=>$qty,
-            'restock_date'=>now(),
-            'note'=>$r->input('note')
-        ]);
+        $product->stock += $qty;
+        $product->save();
         
         if($r->wantsJson()) {
-            return response()->json(['stock'=>$inv->stock]);
+            return response()->json(['stock'=>$product->stock]);
         }
         
         return redirect()->back()->with('success', 'Stock updated successfully!');
-    }
-
-    public function restockHistory()
-    {
-        $restocks = DB::table('restocks')
-            ->join('products', 'restocks.product_id', '=', 'products.id')
-            ->select('restocks.*', 'products.name as product_name', 'products.sku')
-            ->orderBy('restocks.restock_date', 'desc')
-            ->paginate(20);
-        
-        return view('admin.inventory.restocks', compact('restocks'));
     }
 
     // Orders

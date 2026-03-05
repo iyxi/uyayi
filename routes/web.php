@@ -57,7 +57,6 @@ Route::prefix('admin')->middleware(['auth','can:admin-area'])->group(function(){
     // Inventory
     Route::get('/inventory', [AdminController::class, 'inventory'])->name('admin.inventory');
     Route::post('/inventory/restock', [AdminController::class, 'restock'])->name('admin.inventory.restock');
-    Route::get('/inventory/restocks', [AdminController::class, 'restockHistory'])->name('admin.inventory.restocks');
     
     // Finance
     Route::get('/payments', [AdminController::class, 'payments'])->name('admin.payments');

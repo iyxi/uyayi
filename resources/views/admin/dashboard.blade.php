@@ -158,7 +158,7 @@
                                 <br>
                                 <small class="text-muted">{{ $product->sku }}</small>
                             </div>
-                            <span class="badge bg-danger">{{ $product->inventory->stock ?? 0 }} left</span>
+                            <span class="badge bg-danger">{{ $product->stock }} left</span>
                         </div>
                         @endforeach
                     </div>
