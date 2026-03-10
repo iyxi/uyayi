@@ -34,14 +34,6 @@ class AdminMiddleware
             return redirect()->route('homepage')->with('error', 'You do not have permission to access this area.');
         }
 
-        // Check if user's email is verified
-        if (!$user->hasVerifiedEmail()) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Email verification required.'], 403);
-            }
-            return redirect()->route('verification.notice')->with('error', 'Please verify your email address first.');
-        }
-
         return $next($request);
     }
 }

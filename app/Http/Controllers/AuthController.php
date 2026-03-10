@@ -29,16 +29,6 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $user = Auth::user();
-            
-            // Check if email is verified
-            if (!$user->hasVerifiedEmail()) {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Please verify your email address before logging in.',
-                ])->onlyInput('email');
-            }
-            
             $request->session()->regenerate();
             return redirect()->intended(route('homepage'));
         }
@@ -86,10 +76,9 @@ class AuthController extends Controller
             'role' => 'customer',
         ]);
 
-        // Send email verification notification
-        $user->sendEmailVerificationNotification();
+        Auth::login($user);
 
-        return redirect()->route('verification.notice')->with('success', 'Registration successful! Please check your email and verify your account before logging in.');
+        return redirect()->route('homepage')->with('success', 'Registration successful! Welcome to Uyayi.');
     }
 
     /**
