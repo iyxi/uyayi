@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create admin user
-        User::firstOrCreate(
+        $adminUser = User::firstOrCreate(
             ['email' => 'admin@uyayi.com'],
             [
                 'name' => 'Admin User',
@@ -23,9 +23,13 @@ class DatabaseSeeder extends Seeder
                 'role' => 'admin'
             ]
         );
+        // Mark admin as verified
+        if (!$adminUser->hasVerifiedEmail()) {
+            $adminUser->markEmailAsVerified();
+        }
 
         // Create test customer
-        User::firstOrCreate(
+        $customerUser = User::firstOrCreate(
             ['email' => 'customer@test.com'],
             [
                 'name' => 'Test Customer',
@@ -34,9 +38,13 @@ class DatabaseSeeder extends Seeder
                 'role' => 'customer'
             ]
         );
+        // Mark test customer as verified for testing
+        if (!$customerUser->hasVerifiedEmail()) {
+            $customerUser->markEmailAsVerified();
+        }
 
         // Create additional test users
-        User::firstOrCreate(
+        $johnUser = User::firstOrCreate(
             ['email' => 'john@example.com'],
             [
                 'name' => 'John Smith',
@@ -45,6 +53,10 @@ class DatabaseSeeder extends Seeder
                 'role' => 'customer'
             ]
         );
+        // Mark john as verified for testing
+        if (!$johnUser->hasVerifiedEmail()) {
+            $johnUser->markEmailAsVerified();
+        }
 
         // Seed categories
         $this->call(CategoriesSeeder::class);
