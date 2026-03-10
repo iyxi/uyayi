@@ -23,6 +23,7 @@
                         <tr>
                             <th>SKU</th>
                             <th>Name</th>
+                            <th>Category</th>
                             <th>Price</th>
                             <th>Status</th>
                             <th>Created</th>
@@ -42,6 +43,13 @@
                                         <br><small class="text-muted">{{ Str::limit($product->description, 50) }}</small>
                                     @endif
                                 </div>
+                            </td>
+                            <td>
+                                @if($product->category)
+                                    <span class="badge bg-info text-dark">{{ $product->category->name }}</span>
+                                @else
+                                    <span class="text-muted">No Category</span>
+                                @endif
                             </td>
                             <td>
                                 <span class="fw-bold text-success">₱{{ number_format($product->price, 2) }}</span>

@@ -8,9 +8,10 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Payment;
 use App\Models\Expense;
+use App\Models\Category;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;  
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
@@ -31,14 +32,15 @@ class AdminController extends Controller
     // Product CRUD
     public function index()
     {
-        $products = Product::paginate(20);
+        $products = Product::with('category')->paginate(20);
+        $categories = Category::active()->orderBy('name')->get();
         $trashedCount = Product::onlyTrashed()->count();
-        return view('admin.products.index', compact('products', 'trashedCount'));
+        return view('admin.products.index', compact('products', 'categories', 'trashedCount'));
     }
 
     public function trashed()
     {
-        $products = Product::onlyTrashed()->paginate(20);
+        $products = Product::onlyTrashed()->with('category')->paginate(20);
         return view('admin.products.trashed', compact('products'));
     }
 
@@ -49,6 +51,7 @@ class AdminController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'category_id' => 'nullable|exists:categories,id',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
         
@@ -70,6 +73,7 @@ class AdminController extends Controller
             'description' => $r->input('description'),
             'price' => $r->input('price'),
             'stock' => $r->input('stock', 0),
+            'category_id' => $r->input('category_id'),
             'visible' => $r->has('visible') ? 1 : 0,
             'images' => $imagePaths
         ]);
@@ -83,7 +87,7 @@ class AdminController extends Controller
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
-        $data = $r->only(['name','description','price','stock','visible']);
+        $data = $r->only(['name','description','price','stock','visible','category_id']);
         
         // Handle new image uploads
         if ($r->hasFile('images')) {
@@ -187,6 +191,7 @@ class AdminController extends Controller
 
     public function show(Product $product)
     {
+        $product->load('category');
         return response()->json($product);
     }
 
@@ -358,5 +363,89 @@ class AdminController extends Controller
         $user->save();
         
         return redirect()->route('admin.account')->with('success', 'Account updated successfully!');
+    }
+
+    // Categories Management
+    public function categories()
+    {
+        $categories = Category::withCount('products')->paginate(15);
+        return view('admin.categories.index', compact('categories'));
+    }
+
+    public function storeCategory(Request $r)
+    {
+        $r->validate([
+            'name' => 'required|string|max:255|unique:categories',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean'
+        ]);
+
+        Category::create([
+            'name' => $r->name,
+            'description' => $r->description,
+            'is_active' => $r->has('is_active') ? 1 : 0
+        ]);
+
+        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully!');
+    }
+
+    public function updateCategory(Request $r, Category $category)
+    {
+        $r->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'description' => 'nullable|string',
+            'is_active' => 'boolean'
+        ]);
+
+        $category->update([
+            'name' => $r->name,
+            'description' => $r->description,
+            'is_active' => $r->has('is_active') ? 1 : 0
+        ]);
+
+        return response()->json($category);
+    }
+
+    public function destroyCategory(Category $category)
+    {
+        if ($category->products()->count() > 0) {
+            return response()->json(['error' => 'Cannot delete category with products. Please reassign products first.'], 422);
+        }
+        
+        $category->delete();
+        return response()->noContent();
+    }
+
+    // User Management
+    public function users()
+    {
+        $users = User::withCount('orders')->orderBy('created_at', 'desc')->paginate(20);
+        return view('admin.users.index', compact('users'));
+    }
+
+    public function showUser(User $user)
+    {
+        $user->load('orders');
+        return response()->json($user);
+    }
+
+    public function updateUserStatus(Request $r, User $user)
+    {
+        $r->validate([
+            'status' => 'required|in:active,inactive'
+        ]);
+
+        $user->update(['status' => $r->status]);
+        return response()->json(['success' => true, 'message' => 'User status updated successfully']);
+    }
+
+    public function updateUserRole(Request $r, User $user)
+    {
+        $r->validate([
+            'role' => 'required|in:customer,admin'
+        ]);
+
+        $user->update(['role' => $r->role]);
+        return response()->json(['success' => true, 'message' => 'User role updated successfully']);
     }
 }

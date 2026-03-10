@@ -9,7 +9,7 @@ class Product extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['sku','name','description','price','stock','visible','images'];
+    protected $fillable = ['sku','name','description','price','stock','visible','images','category_id'];
 
     protected $casts = [
         'images' => 'array',
@@ -19,6 +19,11 @@ class Product extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function getPrimaryImageUrlAttribute()

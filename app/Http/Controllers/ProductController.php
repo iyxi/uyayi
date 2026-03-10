@@ -4,19 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::orderBy('created_at', 'desc')->paginate(10);
+        $products = Product::with('category')->orderBy('created_at', 'desc')->paginate(10);
         return view('products.index', compact('products'));
     }
 
     public function create()
     {
-        return view('products.create');
+        $categories = Category::active()->orderBy('name')->get();
+        return view('products.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -25,6 +27,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'category_id' => 'nullable|exists:categories,id',
             'visible' => 'boolean'
         ]);
 
@@ -33,6 +36,7 @@ class ProductController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
+            'category_id' => $request->category_id,
             'visible' => $request->has('visible') ? 1 : 0
         ]);
 
@@ -42,12 +46,14 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
+        $product->load('category');
         return view('products.show', compact('product'));
     }
 
     public function edit(Product $product)
     {
-        return view('products.edit', compact('product'));
+        $categories = Category::active()->orderBy('name')->get();
+        return view('products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, Product $product)
@@ -56,6 +62,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'category_id' => 'nullable|exists:categories,id',
             'visible' => 'boolean'
         ]);
 
@@ -63,6 +70,7 @@ class ProductController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
+            'category_id' => $request->category_id,
             'visible' => $request->has('visible') ? 1 : 0
         ]);
 

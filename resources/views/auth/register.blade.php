@@ -25,8 +25,31 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
                         @csrf
+                        
+                        <!-- Profile Photo -->
+                        <div class="mb-3">
+                            <label for="photo" class="form-label fw-semibold">
+                                <i class="bi bi-camera"></i> Profile Photo
+                            </label>
+                            <div class="text-center mb-3">
+                                <img id="photoPreview" src="https://ui-avatars.com/api/?name=User&color=7F9CF5&background=EBF4FF" 
+                                     class="rounded-circle" width="80" height="80" style="object-fit: cover;">
+                            </div>
+                            <input type="file" 
+                                   class="form-control @error('photo') is-invalid @enderror" 
+                                   id="photo" 
+                                   name="photo" 
+                                   accept="image/*"
+                                   onchange="previewPhoto(this)">
+                            <div class="form-text">Upload a profile photo (JPG, PNG, GIF up to 2MB)</div>
+                            @error('photo')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
                         
                         <!-- Name -->
                         <div class="mb-3">
@@ -42,6 +65,42 @@
                                    autocomplete="name"
                                    placeholder="Enter your full name">
                             @error('name')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label fw-semibold">
+                                <i class="bi bi-phone"></i> Phone Number
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg @error('phone') is-invalid @enderror" 
+                                   id="phone" 
+                                   name="phone" 
+                                   value="{{ old('phone') }}" 
+                                   autocomplete="tel"
+                                   placeholder="Enter your phone number">
+                            @error('phone')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-3">
+                            <label for="address" class="form-label fw-semibold">
+                                <i class="bi bi-geo-alt"></i> Address
+                            </label>
+                            <textarea class="form-control @error('address') is-invalid @enderror" 
+                                      id="address" 
+                                      name="address" 
+                                      rows="2"
+                                      placeholder="Enter your complete address">{{ old('address') }}</textarea>
+                            @error('address')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -198,5 +257,16 @@ document.addEventListener('DOMContentLoaded', function() {
     password.addEventListener('input', checkPasswordMatch);
     passwordConfirm.addEventListener('input', checkPasswordMatch);
 });
+
+// Photo preview function
+function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('photoPreview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 </script>
 @endsection

@@ -51,6 +51,7 @@
                         <tr>
                             <th>Product</th>
                             <th>SKU</th>
+                            <th>Category</th>
                             <th>Price</th>
                             <th>Stock</th>
                             <th>Status</th>
@@ -84,6 +85,13 @@
                                 </div>
                             </td>
                             <td><code>{{ $product->sku }}</code></td>
+                            <td>
+                                @if($product->category)
+                                    <span class="badge bg-info text-dark">{{ $product->category->name }}</span>
+                                @else
+                                    <span class="text-muted">No Category</span>
+                                @endif
+                            </td>
                             <td><strong>₱{{ number_format($product->price, 2) }}</strong></td>
                             <td>
                                 <span class="badge bg-{{ $product->stock > 10 ? 'success' : ($product->stock > 0 ? 'warning' : 'danger') }}">
@@ -169,6 +177,19 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="category_id" class="form-label">Category</label>
+                                <select class="form-control" name="category_id" id="category_id">
+                                    <option value="">Select Category (Optional)</option>
+                                    @if(isset($categories))
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="stock" class="form-label">Initial Stock <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" name="stock" id="stock" min="0" required>
                             </div>
@@ -247,6 +268,19 @@
                                 <label for="edit_stock" class="form-label">Current Stock</label>
                                 <input type="number" class="form-control" name="stock" id="edit_stock" min="0">
                                 <small class="text-muted">Use Restock button to add more inventory</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_category_id" class="form-label">Category</label>
+                                <select class="form-control" name="category_id" id="edit_category_id">
+                                    <option value="">Select Category (Optional)</option>
+                                    @if(isset($categories))
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
                             </div>
                         </div>
                         <div class="col-12">
@@ -340,6 +374,7 @@ function editProduct(id) {
             document.getElementById('edit_description').value = product.description || '';
             document.getElementById('edit_visible').checked = product.visible == 1;
             document.getElementById('edit_stock').value = product.stock || 0;
+            document.getElementById('edit_category_id').value = product.category_id || '';
             
             // Set form action
             document.getElementById('editProductForm').action = `/admin/products/${id}`;

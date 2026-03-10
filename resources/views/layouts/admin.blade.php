@@ -674,9 +674,19 @@
                 <span>Products</span>
             </a>
 
+            <a href="{{ route('admin.categories.index') }}" class="sidebar-link {{ request()->routeIs('admin.categories*') ? 'active' : '' }}">
+                <i class="bi bi-tags"></i>
+                <span>Categories</span>
+            </a>
+
             <a href="{{ route('admin.customers') }}" class="sidebar-link {{ request()->routeIs('admin.customers') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
                 <span>Customers</span>
+            </a>
+
+            <a href="{{ route('admin.users') }}" class="sidebar-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+                <i class="bi bi-person-gear"></i>
+                <span>User Management</span>
             </a>
 
             <div class="nav-section">

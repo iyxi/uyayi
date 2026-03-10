@@ -18,7 +18,9 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@uyayi.com'],
             [
                 'name' => 'Admin User',
-                'password' => Hash::make('admin123')
+                'password' => Hash::make('admin123'),
+                'status' => 'active',
+                'role' => 'admin'
             ]
         );
 
@@ -27,7 +29,9 @@ class DatabaseSeeder extends Seeder
             ['email' => 'customer@test.com'],
             [
                 'name' => 'Test Customer',
-                'password' => Hash::make('password123')
+                'password' => Hash::make('password123'),
+                'status' => 'active',
+                'role' => 'customer'
             ]
         );
 
@@ -36,8 +40,13 @@ class DatabaseSeeder extends Seeder
             ['email' => 'john@example.com'],
             [
                 'name' => 'John Smith',
-                'password' => Hash::make('password123')
+                'password' => Hash::make('password123'),
+                'status' => 'active',
+                'role' => 'customer'
             ]
         );
+
+        // Seed categories
+        $this->call(CategoriesSeeder::class);
     }
 }

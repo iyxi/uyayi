@@ -31,6 +31,10 @@ Route::middleware(['auth'])->group(function(){
     Route::post('/cart/add/{product}', [CustomerController::class, 'addToCart'])->name('cart.add');
     Route::post('/checkout', [CustomerController::class, 'checkout'])->name('checkout');
     Route::get('/orders/{order}', [CustomerController::class, 'showOrder'])->name('orders.show');
+    
+    // Profile routes
+    Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
+    Route::put('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
 });
 
 // Admin routes
@@ -51,6 +55,18 @@ Route::prefix('admin')->middleware(['auth','can:admin-area'])->group(function(){
     Route::post('/products/{id}/restore', [AdminController::class, 'restore'])->name('admin.products.restore');
     Route::delete('/products/{id}/force', [AdminController::class, 'forceDelete'])->name('admin.products.forceDelete');
     Route::delete('/products/{product}/image/{index}', [AdminController::class, 'deleteImage'])->name('admin.products.deleteImage');
+    
+    // Categories
+    Route::get('/categories', [AdminController::class, 'categories'])->name('admin.categories.index');
+    Route::post('/categories', [AdminController::class, 'storeCategory'])->name('admin.categories.store');
+    Route::patch('/categories/{category}', [AdminController::class, 'updateCategory'])->name('admin.categories.update');
+    Route::delete('/categories/{category}', [AdminController::class, 'destroyCategory'])->name('admin.categories.destroy');
+    
+    // User Management
+    Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
+    Route::patch('/users/{user}/status', [AdminController::class, 'updateUserStatus'])->name('admin.users.status');
+    Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
     
     // Orders
     Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders');
