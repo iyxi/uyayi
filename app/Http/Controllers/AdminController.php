@@ -32,7 +32,14 @@ class AdminController extends Controller
     public function index()
     {
         $products = Product::paginate(20);
-        return view('admin.products.index', compact('products'));
+        $trashedCount = Product::onlyTrashed()->count();
+        return view('admin.products.index', compact('products', 'trashedCount'));
+    }
+
+    public function trashed()
+    {
+        $products = Product::onlyTrashed()->paginate(20);
+        return view('admin.products.trashed', compact('products'));
     }
 
     public function store(Request $r)
@@ -41,11 +48,21 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0'
+            'stock' => 'required|integer|min:0',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
         
         // Auto-generate SKU
         $sku = 'SKU' . strtoupper(Str::random(8));
+        
+        // Handle image uploads
+        $imagePaths = [];
+        if ($r->hasFile('images')) {
+            foreach ($r->file('images') as $image) {
+                $path = $image->store('products', 'public');
+                $imagePaths[] = $path;
+            }
+        }
         
         $p = Product::create([
             'sku' => $sku,
@@ -53,7 +70,8 @@ class AdminController extends Controller
             'description' => $r->input('description'),
             'price' => $r->input('price'),
             'stock' => $r->input('stock', 0),
-            'visible' => $r->has('visible') ? 1 : 0
+            'visible' => $r->has('visible') ? 1 : 0,
+            'images' => $imagePaths
         ]);
         
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully!');
@@ -61,7 +79,23 @@ class AdminController extends Controller
 
     public function update(Request $r, Product $product)
     {
-        $product->update($r->only(['name','description','price','stock','visible']));
+        $r->validate([
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+        ]);
+
+        $data = $r->only(['name','description','price','stock','visible']);
+        
+        // Handle new image uploads
+        if ($r->hasFile('images')) {
+            $imagePaths = $product->images ?? [];
+            foreach ($r->file('images') as $image) {
+                $path = $image->store('products', 'public');
+                $imagePaths[] = $path;
+            }
+            $data['images'] = $imagePaths;
+        }
+        
+        $product->update($data);
         return response()->json($product);
     }
 
@@ -69,6 +103,86 @@ class AdminController extends Controller
     {
         $product->delete();
         return response()->noContent();
+    }
+
+    public function restore($id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        $product->restore();
+        return redirect()->route('admin.products.trashed')->with('success', 'Product restored successfully!');
+    }
+
+    public function forceDelete($id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        // Delete associated images from storage
+        if ($product->images) {
+            foreach ($product->images as $imagePath) {
+                \Storage::disk('public')->delete($imagePath);
+            }
+        }
+        $product->forceDelete();
+        return redirect()->route('admin.products.trashed')->with('success', 'Product permanently deleted!');
+    }
+
+    public function deleteImage(Product $product, $index)
+    {
+        $images = $product->images ?? [];
+        if (isset($images[$index])) {
+            \Storage::disk('public')->delete($images[$index]);
+            array_splice($images, $index, 1);
+            $product->update(['images' => $images]);
+        }
+        return response()->json(['success' => true, 'images' => $product->fresh()->images]);
+    }
+
+    public function importProducts(Request $r)
+    {
+        $r->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240'
+        ]);
+
+        $file = $r->file('file');
+        $data = [];
+        
+        if ($file->getClientOriginalExtension() === 'csv') {
+            $handle = fopen($file->getRealPath(), 'r');
+            $header = fgetcsv($handle);
+            while (($row = fgetcsv($handle)) !== false) {
+                $data[] = array_combine($header, $row);
+            }
+            fclose($handle);
+        } else {
+            // For Excel files, use PhpSpreadsheet if available, otherwise CSV only
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file->getRealPath());
+            $spreadsheet = $reader->load($file->getRealPath());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            $header = array_shift($rows);
+            foreach ($rows as $row) {
+                if (array_filter($row)) {
+                    $data[] = array_combine($header, $row);
+                }
+            }
+        }
+
+        $imported = 0;
+        foreach ($data as $row) {
+            if (empty($row['name'])) continue;
+            
+            Product::create([
+                'sku' => $row['sku'] ?? 'SKU' . strtoupper(Str::random(8)),
+                'name' => $row['name'],
+                'description' => $row['description'] ?? null,
+                'price' => floatval($row['price'] ?? 0),
+                'stock' => intval($row['stock'] ?? 0),
+                'visible' => isset($row['visible']) ? (strtolower($row['visible']) === 'yes' || $row['visible'] == 1) : true,
+                'images' => null
+            ]);
+            $imported++;
+        }
+
+        return redirect()->route('admin.products.index')->with('success', "Imported {$imported} products successfully!");
     }
 
     public function show(Product $product)
@@ -91,6 +205,17 @@ class AdminController extends Controller
     {
         $products = Product::paginate(20);
         return view('admin.inventory.index', compact('products'));
+    }
+
+    public function restocks()
+    {
+        $restocks = \DB::table('restocks')
+            ->join('products', 'restocks.product_id', '=', 'products.id')
+            ->select('restocks.*', 'products.name as product_name', 'products.sku')
+            ->orderBy('restocks.restock_date', 'desc')
+            ->paginate(20);
+        
+        return view('admin.inventory.restocks', compact('restocks'));
     }
 
     public function restock(Request $r)

@@ -39,6 +39,8 @@ Route::prefix('admin')->middleware(['auth','can:admin-area'])->group(function(){
     
     // Products
     Route::get('/products', [AdminController::class, 'index'])->name('admin.products.index');
+    Route::get('/products/trashed', [AdminController::class, 'trashed'])->name('admin.products.trashed');
+    Route::post('/products/import', [AdminController::class, 'importProducts'])->name('admin.products.import');
     Route::post('/products', [AdminController::class, 'store'])->name('admin.products.store');
     Route::get('/products/create', function() {
         return redirect()->route('admin.products.index');
@@ -46,6 +48,9 @@ Route::prefix('admin')->middleware(['auth','can:admin-area'])->group(function(){
     Route::get('/products/{product}/json', [AdminController::class, 'show'])->name('admin.products.show');
     Route::patch('/products/{product}', [AdminController::class, 'update'])->name('admin.products.update');
     Route::delete('/products/{product}', [AdminController::class, 'destroy'])->name('admin.products.destroy');
+    Route::post('/products/{id}/restore', [AdminController::class, 'restore'])->name('admin.products.restore');
+    Route::delete('/products/{id}/force', [AdminController::class, 'forceDelete'])->name('admin.products.forceDelete');
+    Route::delete('/products/{product}/image/{index}', [AdminController::class, 'deleteImage'])->name('admin.products.deleteImage');
     
     // Orders
     Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders');
@@ -56,6 +61,7 @@ Route::prefix('admin')->middleware(['auth','can:admin-area'])->group(function(){
     
     // Inventory
     Route::get('/inventory', [AdminController::class, 'inventory'])->name('admin.inventory');
+    Route::get('/inventory/restocks', [AdminController::class, 'restocks'])->name('admin.inventory.restocks');
     Route::post('/inventory/restock', [AdminController::class, 'restock'])->name('admin.inventory.restock');
     
     // Finance

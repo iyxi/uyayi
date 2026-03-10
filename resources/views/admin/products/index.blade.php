@@ -11,9 +11,19 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="page-title mb-0">Products</h1>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-        <i class="bi bi-plus-lg"></i> Add Product
-    </button>
+    <div class="btn-group">
+        @if(isset($trashedCount) && $trashedCount > 0)
+        <a href="{{ route('admin.products.trashed') }}" class="btn btn-outline-warning">
+            <i class="bi bi-trash"></i> Trashed ({{ $trashedCount }})
+        </a>
+        @endif
+        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-file-earmark-excel"></i> Import Excel
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="bi bi-plus-lg"></i> Add Product
+        </button>
+    </div>
 </div>
 
 <!-- Products Table -->
@@ -44,6 +54,7 @@
                             <th>Price</th>
                             <th>Stock</th>
                             <th>Status</th>
+                            <th>Image</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -53,9 +64,16 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="product-image me-3">
-                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                            <i class="bi bi-image text-muted"></i>
-                                        </div>
+                                        @if($product->images && count($product->images) > 0)
+                                            <img src="{{ asset('storage/' . $product->images[0]) }}" 
+                                                 class="rounded" 
+                                                 style="width: 50px; height: 50px; object-fit: cover;"
+                                                 alt="{{ $product->name }}">
+                                        @else
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
+                                        @endif
                                     </div>
                                     <div>
                                         <strong>{{ $product->name }}</strong>
@@ -76,6 +94,15 @@
                                 <span class="badge bg-{{ $product->visible ? 'success' : 'secondary' }}">
                                     {{ $product->visible ? 'Active' : 'Hidden' }}
                                 </span>
+                            </td>
+                            <td>
+                                @if($product->images && count($product->images) > 0)
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewImages({{ $product->id }}, '{{ $product->name }}')">
+                                        <i class="bi bi-images"></i> {{ count($product->images) }}
+                                    </button>
+                                @else
+                                    <span class="text-muted">No images</span>
+                                @endif
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
@@ -117,7 +144,7 @@
 <div class="modal fade" id="addProductModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ route('admin.products.store') }}" method="POST">
+            <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Add New Product</h5>
@@ -144,6 +171,13 @@
                             <div class="mb-3">
                                 <label for="stock" class="form-label">Initial Stock <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" name="stock" id="stock" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Product Images</label>
+                                <input type="file" class="form-control" name="images[]" id="images" multiple accept="image/*">
+                                <small class="text-muted">You can select multiple images. Max 2MB each.</small>
                             </div>
                         </div>
                         <div class="col-12">
@@ -177,7 +211,7 @@
 <div class="modal fade" id="editProductModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form id="editProductForm" method="POST">
+            <form id="editProductForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
                 <div class="modal-header">
@@ -213,6 +247,21 @@
                                 <label for="edit_stock" class="form-label">Current Stock</label>
                                 <input type="number" class="form-control" name="stock" id="edit_stock" min="0">
                                 <small class="text-muted">Use Restock button to add more inventory</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Current Images</label>
+                                <div id="edit_current_images" class="d-flex flex-wrap gap-2 mb-2">
+                                    <!-- Images will be loaded here via JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="edit_images" class="form-label">Add More Images</label>
+                                <input type="file" class="form-control" name="images[]" id="edit_images" multiple accept="image/*">
+                                <small class="text-muted">You can select multiple images. Max 2MB each.</small>
                             </div>
                         </div>
                         <div class="col-12">
