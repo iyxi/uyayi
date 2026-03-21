@@ -105,7 +105,7 @@
                             </td>
                             <td>
                                 @if($product->images && count($product->images) > 0)
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewImages({{ $product->id }}, '{{ $product->name }}')">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick='viewImages({{ $product->id }}, @json($product->name))'>
                                         <i class="bi bi-images"></i> {{ count($product->images) }}
                                     </button>
                                 @else
@@ -117,10 +117,10 @@
                                     <button class="btn btn-outline-primary" onclick="editProduct({{ $product->id }})">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-outline-info" onclick="restockProduct({{ $product->id }}, '{{ $product->name }}')">
+                                    <button class="btn btn-outline-info" onclick='restockProduct({{ $product->id }}, @json($product->name))'>
                                         <i class="bi bi-arrow-up-circle"></i>
                                     </button>
-                                    <button class="btn btn-outline-danger" onclick="deleteProduct({{ $product->id }}, '{{ $product->name }}')">
+                                    <button class="btn btn-outline-danger" onclick='deleteProduct({{ $product->id }}, @json($product->name))'>
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -145,6 +145,39 @@
                 </button>
             </div>
         @endif
+    </div>
+</div>
+
+<!-- Import Products Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ route('admin.products.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Products from Worksheet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="import_file" class="form-label">Excel/CSV File</label>
+                        <input type="file" class="form-control" id="import_file" name="file" accept=".xlsx,.xls,.csv" required>
+                        <small class="text-muted">Accepted: .xlsx, .xls, .csv (max 10MB)</small>
+                    </div>
+
+                    <div class="alert alert-light border mb-0">
+                        <strong>Expected columns:</strong>
+                        <div class="small mt-1">name (required), sku, description, price, stock, visible, category or category_name</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-upload"></i> Import Products
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -361,7 +394,63 @@
     </div>
 </div>
 
+<!-- Product Images Modal -->
+<div class="modal fade" id="viewImagesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewImagesModalTitle">Product Images</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="view_images_container" class="row g-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+const STORAGE_BASE_URL = @json(asset('storage'));
+
+function buildImageUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `${STORAGE_BASE_URL}/${path}`;
+}
+
+function viewImages(id, name) {
+    fetch(`/admin/products/${id}/json`)
+        .then(response => response.json())
+        .then(product => {
+            const container = document.getElementById('view_images_container');
+            const title = document.getElementById('viewImagesModalTitle');
+            const images = Array.isArray(product.images) ? product.images : [];
+
+            title.textContent = `${name} - ${images.length} image${images.length === 1 ? '' : 's'}`;
+
+            if (images.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-muted py-4">No images uploaded for this product.</div>';
+            } else {
+                container.innerHTML = images.map((imagePath, index) => `
+                    <div class="col-md-4 col-sm-6">
+                        <div class="border rounded p-2 h-100">
+                            <a href="${buildImageUrl(imagePath)}" target="_blank" rel="noopener noreferrer">
+                                <img src="${buildImageUrl(imagePath)}" alt="${name} image ${index + 1}" class="img-fluid rounded" style="width: 100%; height: 180px; object-fit: cover;">
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('viewImagesModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading product images');
+        });
+}
+
 function editProduct(id) {
     // Fetch product data
     fetch(`/admin/products/${id}/json`)
@@ -375,6 +464,19 @@ function editProduct(id) {
             document.getElementById('edit_visible').checked = product.visible == 1;
             document.getElementById('edit_stock').value = product.stock || 0;
             document.getElementById('edit_category_id').value = product.category_id || '';
+
+            const currentImagesContainer = document.getElementById('edit_current_images');
+            const images = Array.isArray(product.images) ? product.images : [];
+
+            if (images.length === 0) {
+                currentImagesContainer.innerHTML = '<span class="text-muted">No images uploaded</span>';
+            } else {
+                currentImagesContainer.innerHTML = images.map((imagePath, index) => `
+                    <div class="position-relative border rounded p-1" style="width: 95px;">
+                        <img src="${buildImageUrl(imagePath)}" alt="${product.name} image ${index + 1}" class="rounded" style="width: 85px; height: 85px; object-fit: cover;">
+                    </div>
+                `).join('');
+            }
             
             // Set form action
             document.getElementById('editProductForm').action = `/admin/products/${id}`;

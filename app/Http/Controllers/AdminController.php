@@ -147,46 +147,152 @@ class AdminController extends Controller
         ]);
 
         $file = $r->file('file');
-        $data = [];
+        $rows = [];
+        $ext = strtolower($file->getClientOriginalExtension());
         
-        if ($file->getClientOriginalExtension() === 'csv') {
+        if ($ext === 'csv') {
             $handle = fopen($file->getRealPath(), 'r');
+
+            if ($handle === false) {
+                return redirect()->route('admin.products.index')->withErrors(['file' => 'Unable to read the uploaded file.']);
+            }
+
             $header = fgetcsv($handle);
+            if (!$header) {
+                fclose($handle);
+                return redirect()->route('admin.products.index')->withErrors(['file' => 'The uploaded CSV file is empty.']);
+            }
+
+            $normalizedHeader = array_map(fn ($h) => $this->normalizeImportHeader($h), $header);
+
             while (($row = fgetcsv($handle)) !== false) {
-                $data[] = array_combine($header, $row);
+                if (!array_filter($row, fn ($value) => trim((string) $value) !== '')) {
+                    continue;
+                }
+
+                $assoc = [];
+                foreach ($normalizedHeader as $i => $key) {
+                    if ($key !== '') {
+                        $assoc[$key] = $row[$i] ?? null;
+                    }
+                }
+                $rows[] = $assoc;
             }
             fclose($handle);
         } else {
-            // For Excel files, use PhpSpreadsheet if available, otherwise CSV only
+            if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+                return redirect()->route('admin.products.index')->withErrors([
+                    'file' => 'Excel import requires phpoffice/phpspreadsheet. Run: composer require phpoffice/phpspreadsheet'
+                ]);
+            }
+
             $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file->getRealPath());
             $spreadsheet = $reader->load($file->getRealPath());
-            $worksheet = $spreadsheet->getActiveSheet();
-            $rows = $worksheet->toArray();
-            $header = array_shift($rows);
-            foreach ($rows as $row) {
-                if (array_filter($row)) {
-                    $data[] = array_combine($header, $row);
+            $worksheet = $spreadsheet->getSheet(0);
+            $sheetRows = $worksheet->toArray(null, true, true, false);
+
+            if (count($sheetRows) === 0) {
+                return redirect()->route('admin.products.index')->withErrors(['file' => 'The uploaded worksheet is empty.']);
+            }
+
+            $header = array_shift($sheetRows);
+            $normalizedHeader = array_map(fn ($h) => $this->normalizeImportHeader($h), $header);
+
+            foreach ($sheetRows as $row) {
+                if (!array_filter($row, fn ($value) => trim((string) $value) !== '')) {
+                    continue;
                 }
+
+                $assoc = [];
+                foreach ($normalizedHeader as $i => $key) {
+                    if ($key !== '') {
+                        $assoc[$key] = $row[$i] ?? null;
+                    }
+                }
+
+                $rows[] = $assoc;
             }
         }
 
-        $imported = 0;
-        foreach ($data as $row) {
-            if (empty($row['name'])) continue;
-            
-            Product::create([
-                'sku' => $row['sku'] ?? 'SKU' . strtoupper(Str::random(8)),
-                'name' => $row['name'],
-                'description' => $row['description'] ?? null,
-                'price' => floatval($row['price'] ?? 0),
-                'stock' => intval($row['stock'] ?? 0),
-                'visible' => isset($row['visible']) ? (strtolower($row['visible']) === 'yes' || $row['visible'] == 1) : true,
-                'images' => null
-            ]);
-            $imported++;
+        if (empty($rows)) {
+            return redirect()->route('admin.products.index')->withErrors(['file' => 'No importable rows found in the uploaded file.']);
         }
 
-        return redirect()->route('admin.products.index')->with('success', "Imported {$imported} products successfully!");
+        if (!isset($rows[0]['name'])) {
+            return redirect()->route('admin.products.index')->withErrors([
+                'file' => 'Missing required "name" column. Please include a header row.'
+            ]);
+        }
+
+        $imported = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        foreach ($rows as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name === '') {
+                $skipped++;
+                continue;
+            }
+
+            $sku = trim((string) ($row['sku'] ?? ''));
+            if ($sku === '') {
+                $sku = 'SKU' . strtoupper(Str::random(8));
+            }
+
+            $categoryId = null;
+            if (!empty($row['category_id'])) {
+                $category = Category::find((int) $row['category_id']);
+                $categoryId = $category?->id;
+            } elseif (!empty($row['category_name']) || !empty($row['category'])) {
+                $categoryName = trim((string) ($row['category_name'] ?? $row['category']));
+                if ($categoryName !== '') {
+                    $category = Category::whereRaw('LOWER(name) = ?', [strtolower($categoryName)])->first();
+                    $categoryId = $category?->id;
+                }
+            }
+
+            $payload = [
+                'name' => $name,
+                'description' => $row['description'] ?? null,
+                'price' => is_numeric($row['price'] ?? null) ? (float) $row['price'] : 0,
+                'stock' => is_numeric($row['stock'] ?? null) ? (int) $row['stock'] : 0,
+                'visible' => $this->parseImportVisibleValue($row['visible'] ?? null),
+                'category_id' => $categoryId,
+            ];
+
+            $product = Product::where('sku', $sku)->first();
+            if ($product) {
+                $product->update($payload);
+                $updated++;
+            } else {
+                Product::create(array_merge($payload, [
+                    'sku' => $sku,
+                    'images' => null,
+                ]));
+                $imported++;
+            }
+        }
+
+        return redirect()->route('admin.products.index')->with(
+            'success',
+            "Import completed. Added: {$imported}, Updated: {$updated}, Skipped: {$skipped}."
+        );
+    }
+
+    private function normalizeImportHeader($header): string
+    {
+        return strtolower(trim(preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $header), '_'));
+    }
+
+    private function parseImportVisibleValue($value): bool
+    {
+        if ($value === null || $value === '') {
+            return true;
+        }
+
+        $normalized = strtolower(trim((string) $value));
+        return in_array($normalized, ['1', 'true', 'yes', 'y', 'active'], true);
     }
 
     public function show(Product $product)
