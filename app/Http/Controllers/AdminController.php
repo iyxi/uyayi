@@ -180,16 +180,20 @@ class AdminController extends Controller
             }
             fclose($handle);
         } else {
-            if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+            if ($ext === 'xls' && !class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
                 return redirect()->route('admin.products.index')->withErrors([
-                    'file' => 'Excel import requires phpoffice/phpspreadsheet. Run: composer require phpoffice/phpspreadsheet'
+                    'file' => 'Legacy .xls import requires phpoffice/phpspreadsheet. Use .xlsx or .csv, or install the package.'
                 ]);
             }
 
-            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file->getRealPath());
-            $spreadsheet = $reader->load($file->getRealPath());
-            $worksheet = $spreadsheet->getSheet(0);
-            $sheetRows = $worksheet->toArray(null, true, true, false);
+            if (class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+                $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file->getRealPath());
+                $spreadsheet = $reader->load($file->getRealPath());
+                $worksheet = $spreadsheet->getSheet(0);
+                $sheetRows = $worksheet->toArray(null, true, true, false);
+            } else {
+                $sheetRows = $this->parseXlsxRows($file->getRealPath());
+            }
 
             if (count($sheetRows) === 0) {
                 return redirect()->route('admin.products.index')->withErrors(['file' => 'The uploaded worksheet is empty.']);
@@ -293,6 +297,101 @@ class AdminController extends Controller
 
         $normalized = strtolower(trim((string) $value));
         return in_array($normalized, ['1', 'true', 'yes', 'y', 'active'], true);
+    }
+
+    private function parseXlsxRows(string $xlsxPath): array
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($xlsxPath) !== true) {
+            return [];
+        }
+
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        if ($sheetXml === false) {
+            $zip->close();
+            return [];
+        }
+
+        $sharedStrings = [];
+        $sharedXml = $zip->getFromName('xl/sharedStrings.xml');
+        if ($sharedXml !== false) {
+            $sharedDoc = @simplexml_load_string($sharedXml);
+            if ($sharedDoc) {
+                foreach ($sharedDoc->si as $si) {
+                    if (isset($si->t)) {
+                        $sharedStrings[] = (string) $si->t;
+                        continue;
+                    }
+
+                    $parts = [];
+                    if (isset($si->r)) {
+                        foreach ($si->r as $run) {
+                            $parts[] = (string) ($run->t ?? '');
+                        }
+                    }
+                    $sharedStrings[] = implode('', $parts);
+                }
+            }
+        }
+
+        $sheetDoc = @simplexml_load_string($sheetXml);
+        $zip->close();
+
+        if (!$sheetDoc || !isset($sheetDoc->sheetData)) {
+            return [];
+        }
+
+        $rows = [];
+        foreach ($sheetDoc->sheetData->row as $rowNode) {
+            $row = [];
+            foreach ($rowNode->c as $cell) {
+                $cellRef = (string) ($cell['r'] ?? '');
+                $columnIndex = $this->xlsxColumnIndexFromCellRef($cellRef);
+
+                $type = (string) ($cell['t'] ?? '');
+                $value = '';
+
+                if ($type === 'inlineStr') {
+                    $value = (string) ($cell->is->t ?? '');
+                } elseif ($type === 's') {
+                    $sharedIndex = (int) ($cell->v ?? -1);
+                    $value = $sharedStrings[$sharedIndex] ?? '';
+                } else {
+                    $value = (string) ($cell->v ?? '');
+                }
+
+                if ($columnIndex >= 0) {
+                    $row[$columnIndex] = $value;
+                }
+            }
+
+            if (!empty($row)) {
+                ksort($row);
+                $rows[] = array_values($row);
+            }
+        }
+
+        return $rows;
+    }
+
+    private function xlsxColumnIndexFromCellRef(string $cellRef): int
+    {
+        if ($cellRef === '') {
+            return -1;
+        }
+
+        if (!preg_match('/^([A-Z]+)\d+$/', strtoupper($cellRef), $matches)) {
+            return -1;
+        }
+
+        $letters = $matches[1];
+        $index = 0;
+
+        for ($i = 0; $i < strlen($letters); $i++) {
+            $index = ($index * 26) + (ord($letters[$i]) - ord('A') + 1);
+        }
+
+        return $index - 1;
     }
 
     public function show(Product $product)
