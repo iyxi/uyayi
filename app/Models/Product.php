@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Searchable;
 
     protected $fillable = ['sku','name','description','price','stock','visible','images','category_id','parent_id'];
     // Variants: all products that have this product as their parent
@@ -35,6 +36,22 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => (string) $this->id,
+            'name' => $this->name,
+            'description' => $this->description ?? '',
+            'sku' => $this->sku,
+            'visible' => (bool) $this->visible,
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->deleted_at === null;
     }
 
     public function getPrimaryImageUrlAttribute()

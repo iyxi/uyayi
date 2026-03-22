@@ -20,6 +20,7 @@ Route::get('/checkout-page', [CustomerController::class, 'checkoutPage'])->name(
 
 // API routes for cart functionality
 Route::get('/api/products', [CustomerController::class, 'index'])->name('api.products');
+Route::get('/api/products/{product}', [CustomerController::class, 'showProductApi'])->name('api.products.show');
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
@@ -36,6 +37,7 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
     Route::post('/cart/add/{product}', [CustomerController::class, 'addToCart'])->name('cart.add');
     Route::post('/checkout', [CustomerController::class, 'checkout'])->name('checkout');
+    Route::get('/my-orders', [CustomerController::class, 'myOrders'])->name('orders.index');
     Route::get('/orders/{order}', [CustomerController::class, 'showOrder'])->name('orders.show');
     
     // Profile routes

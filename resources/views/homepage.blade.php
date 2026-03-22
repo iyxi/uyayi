@@ -48,22 +48,134 @@
             <h2 class="display-5 fw-bold" style="color: var(--primary-blue-dark);">Featured Products</h2>
             <p class="lead text-muted">Carefully selected essentials for your baby’s daily hygiene and comfort.</p>
         </div>
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-7">
+                <form method="GET" action="{{ route('homepage') }}" class="input-group input-group-lg">
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ $search ?? '' }}"
+                        class="form-control"
+                        placeholder="Search products on homepage..."
+                        aria-label="Search products"
+                    >
+                    <button class="btn btn-primary-custom" type="submit">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                    @if(!empty($search))
+                        <a href="{{ route('homepage') }}" class="btn btn-outline-secondary">Clear</a>
+                    @endif
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center text-muted small mb-3">
+            @if(!empty($search))
+                Showing {{ $products->total() }} result(s) for "{{ $search }}"
+            @else
+                Showing {{ $products->total() }} product(s)
+            @endif
+        </div>
         
         <div class="row" id="featured-products">
             @forelse($products as $product)
                 <div class="col-md-3 mb-4">
                     <div class="card h-100 shadow-sm border-0">
-                        @if(!empty($product->images) && is_array($product->images) && count($product->images) > 0)
-                            <img src="{{ asset('storage/' . $product->images[0]) }}" class="card-img-top" alt="{{ $product->name }}" style="height: 220px; object-fit: cover;">
+                        @php
+                            $productImages = is_array($product->images) ? array_values(array_filter($product->images)) : [];
+                            $fallbackImageUrl = asset('img/logo.png');
+                            $resolveImageUrl = function (string $path) {
+                                if (filter_var($path, FILTER_VALIDATE_URL)) {
+                                    return $path;
+                                }
+
+                                $cleanPath = ltrim($path, '/');
+
+                                if (str_starts_with($cleanPath, 'public/')) {
+                                    $cleanPath = substr($cleanPath, 7);
+                                }
+
+                                if (str_starts_with($cleanPath, 'storage/')) {
+                                    return asset($cleanPath);
+                                }
+
+                                if (str_starts_with($cleanPath, 'img/')) {
+                                    return asset($cleanPath);
+                                }
+
+                                if (file_exists(public_path($cleanPath))) {
+                                    return asset($cleanPath);
+                                }
+
+                                if (file_exists(public_path('img/' . $cleanPath))) {
+                                    return asset('img/' . $cleanPath);
+                                }
+
+                                return asset('storage/' . $cleanPath);
+                            };
+                            $resolvedImages = array_map($resolveImageUrl, $productImages);
+                        @endphp
+
+                        @if(count($resolvedImages) > 0)
+                            <div id="featuredProductCarousel{{ $product->id }}" class="carousel slide" data-bs-ride="false">
+                                <div class="carousel-inner">
+                                    @foreach($resolvedImages as $idx => $imageUrl)
+                                        <div class="carousel-item {{ $idx === 0 ? 'active' : '' }}">
+                                            <img src="{{ $imageUrl }}"
+                                                 class="card-img-top"
+                                                 alt="{{ $product->name }}"
+                                                 style="height: 220px; object-fit: cover;"
+                                                 onerror="this.onerror=null;this.src='{{ $fallbackImageUrl }}';">
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                @if(count($resolvedImages) > 1)
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#featuredProductCarousel{{ $product->id }}" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#featuredProductCarousel{{ $product->id }}" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                @endif
+                            </div>
                         @else
-                            <img src="{{ asset('img/no-image.png') }}" class="card-img-top" alt="No image" style="height: 220px; object-fit: cover;">
+                            <img src="{{ $fallbackImageUrl }}" class="card-img-top" alt="No image" style="height: 220px; object-fit: cover;">
                         @endif
                         <div class="card-body d-flex flex-column">
+                            @php
+                                $cartPayload = [
+                                    'id' => $product->id,
+                                    'name' => $product->name,
+                                    'price' => $product->price,
+                                    'sku' => $product->sku,
+                                    'stock' => $product->stock,
+                                    'images' => $product->images,
+                                ];
+                            @endphp
                             <h5 class="card-title mb-2">{{ $product->name }}</h5>
                             <p class="card-text text-muted small flex-grow-1">{{ Str::limit($product->description, 60) }}</p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
                                 <span class="fw-bold text-success">₱{{ number_format($product->price, 2) }}</span>
-                                <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary btn-sm">View</a>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary btn-sm">View</a>
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary-custom btn-sm add-to-cart-homepage-btn"
+                                        data-product-id="{{ $product->id }}"
+                                        data-product-name="{{ e($product->name) }}"
+                                        data-product-price="{{ $product->price }}"
+                                        data-product-sku="{{ e($product->sku) }}"
+                                        data-product-stock="{{ (int) $product->stock }}"
+                                        data-product-images='@json($product->images ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)'
+                                        {{ (int) $product->stock === 0 ? 'disabled' : '' }}
+                                    >
+                                        <i class="bi bi-bag-plus"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -78,8 +190,75 @@
                 View All Products <i class="bi bi-arrow-right"></i>
             </a>
         </div>
+
+        @if($products->hasPages())
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Homepage product pagination">
+                    <ul class="pagination mb-0 align-items-center gap-2">
+                        @if($products->onFirstPage())
+                            <li class="page-item d-none"></li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link rounded-pill px-3" href="{{ $products->previousPageUrl() }}" rel="prev" aria-label="Previous page">
+                                    <i class="bi bi-arrow-left"></i>
+                                </a>
+                            </li>
+                        @endif
+
+                        <li class="page-item disabled">
+                            <span class="page-link rounded-pill px-3 text-dark border-0 bg-light">
+                                Page {{ $products->currentPage() }} of {{ $products->lastPage() }}
+                            </span>
+                        </li>
+
+                        @if($products->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link rounded-pill px-3" href="{{ $products->nextPageUrl() }}" rel="next" aria-label="Next page">
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </li>
+                        @else
+                            <li class="page-item d-none"></li>
+                        @endif
+                    </ul>
+                </nav>
+            </div>
+        @endif
     </div>
 </section>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.add-to-cart-homepage-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            try {
+                const productId = Number(button.dataset.productId || 0);
+                const images = JSON.parse(button.dataset.productImages || '[]');
+                const payload = {
+                    id: productId,
+                    name: button.dataset.productName || 'Product',
+                    price: Number(button.dataset.productPrice || 0),
+                    sku: button.dataset.productSku || '',
+                    stock: Number(button.dataset.productStock || 0),
+                    images: Array.isArray(images) ? images : []
+                };
+
+                if (!productId || !payload.name) {
+                    showToast('Unable to add this product right now.', 'warning');
+                    return;
+                }
+
+                addToCart(productId, payload, 1);
+            } catch (error) {
+                console.error('Homepage add-to-cart error:', error);
+                showToast('Unable to add this product right now.', 'warning');
+            }
+        });
+    });
+});
+</script>
+@endpush
 
 <!-- Categories Section -->
 <section class="py-5" style="background-color: white;">
@@ -172,56 +351,3 @@
 <!-- Newsletter Section -->
 <!-- Newsletter removed -->
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Load featured products
-    fetch('/api/products')
-        .then(response => response.json())
-        .then(data => {
-            const productsContainer = document.getElementById('featured-products');
-            const products = data.data ? data.data.slice(0, 4) : []; // Show first 4 products
-            
-            if (products.length > 0) {
-                productsContainer.innerHTML = products.map(product => `
-                    <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="product-card h-100 shadow-sm">
-                            <div class="product-image">
-                                <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                                     class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <h6 class="card-title fw-bold">${product.name}</h6>
-                                <p class="card-text text-muted small flex-grow-1">${product.description || 'Beautiful eco-friendly clothing for children'}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="price">
-                                        <span class="fw-bold" style="color: var(--primary-blue-dark);">$${product.price}</span>
-                                    </div>
-                                    <button class="btn btn-primary-custom btn-sm" onclick="addToCart(${product.id}, ${JSON.stringify(product)})">
-                                        <i class="bi bi-bag-plus"></i> Add
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                productsContainer.innerHTML = `
-                    <div class="col-12 text-center">
-                        <p class="text-muted">No products available at the moment. Please check back soon!</p>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error loading products:', error);
-            document.getElementById('featured-products').innerHTML = `
-                <div class="col-12 text-center">
-                    <p class="text-muted">Unable to load products. Please refresh the page.</p>
-                </div>
-            `;
-        });
-});
-</script>
-@endpush

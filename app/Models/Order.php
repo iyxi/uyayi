@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    protected $fillable = ['user_id','order_number','status','total','shipping_address','payment_id'];
+    protected $fillable = ['user_id','order_number','status','total','shipping_address','total_amount'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function items()
     {
@@ -15,6 +20,6 @@ class Order extends Model
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class);
+        return $this->hasOne(Payment::class, 'order_id');
     }
 }

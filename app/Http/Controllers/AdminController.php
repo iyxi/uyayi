@@ -12,6 +12,7 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;  
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
@@ -41,7 +42,8 @@ class AdminController extends Controller
             'orders' => Order::count(),
             'users' => User::count(),
             'recent_orders' => Order::latest()->take(5)->with('user')->get(),
-            'low_stock' => Product::where('stock', '<', 10)->take(5)->get()
+            'low_stock' => Product::where('stock', '<', 10)->take(5)->get(),
+            'recent_transactions' => Payment::with(['user', 'order'])->latest()->take(10)->get(),
         ];
         
         return view('admin.dashboard', compact('stats'));
@@ -468,16 +470,46 @@ class AdminController extends Controller
 
     public function restock(Request $r)
     {
-        $product = Product::findOrFail($r->input('product_id'));
-        $qty = (int)$r->input('quantity');
+        $validated = $r->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'supplier' => 'required|string|max:255',
+            'unit_cost' => 'required|numeric|min:0',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $product = Product::findOrFail($validated['product_id']);
+        $qty = (int) $validated['quantity'];
+        $supplier = trim((string) $validated['supplier']);
+        $unitCost = (float) $validated['unit_cost'];
+        $expenseAmount = round($qty * $unitCost, 2);
+
         $product->stock += $qty;
         $product->save();
+
+        if (Schema::hasTable('restocks')) {
+            DB::table('restocks')->insert([
+                'product_id' => $product->id,
+                'added_quantity' => $qty,
+                'restock_date' => now(),
+                'note' => $validated['note'] ?? null,
+            ]);
+        }
+
+        Expense::create([
+            'description' => 'Restock purchase: ' . $product->name . ' x' . $qty . ' from ' . $supplier . (!empty($validated['note']) ? ' (' . $validated['note'] . ')' : ''),
+            'amount' => $expenseAmount,
+            'expense_date' => now()->toDateString(),
+        ]);
         
         if($r->wantsJson()) {
-            return response()->json(['stock'=>$product->stock]);
+            return response()->json([
+                'stock' => $product->stock,
+                'expense_amount' => $expenseAmount,
+            ]);
         }
         
-        return redirect()->back()->with('success', 'Stock updated successfully!');
+        return redirect()->back()->with('success', 'Stock updated and supplier expense recorded successfully!');
     }
 
     // Orders

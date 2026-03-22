@@ -142,15 +142,26 @@
                                     <input type="text" class="form-control" id="city" name="city" required>
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label for="state" class="form-label">State *</label>
+                                    <label for="state" class="form-label">Region *</label>
                                     <select class="form-select" id="state" name="state" required>
-                                        <option value="">Select State</option>
-                                        <option value="AL">Alabama</option>
-                                        <option value="CA">California</option>
-                                        <option value="FL">Florida</option>
-                                        <option value="NY">New York</option>
-                                        <option value="TX">Texas</option>
-                                        <!-- Add more states as needed -->
+                                        <option value="">Select Region</option>
+                                        <option value="NCR">NCR - National Capital Region</option>
+                                        <option value="CAR">CAR - Cordillera Administrative Region</option>
+                                        <option value="Region I">Region I - Ilocos Region</option>
+                                        <option value="Region II">Region II - Cagayan Valley</option>
+                                        <option value="Region III">Region III - Central Luzon</option>
+                                        <option value="Region IV-A">Region IV-A - CALABARZON</option>
+                                        <option value="Region IV-B">Region IV-B - MIMAROPA</option>
+                                        <option value="Region V">Region V - Bicol Region</option>
+                                        <option value="Region VI">Region VI - Western Visayas</option>
+                                        <option value="Region VII">Region VII - Central Visayas</option>
+                                        <option value="Region VIII">Region VIII - Eastern Visayas</option>
+                                        <option value="Region IX">Region IX - Zamboanga Peninsula</option>
+                                        <option value="Region X">Region X - Northern Mindanao</option>
+                                        <option value="Region XI">Region XI - Davao Region</option>
+                                        <option value="Region XII">Region XII - SOCCSKSARGEN</option>
+                                        <option value="Region XIII">Region XIII - Caraga</option>
+                                        <option value="BARMM">BARMM - Bangsamoro Autonomous Region</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3 mb-3">
@@ -198,7 +209,7 @@
                                                 <strong>Express Shipping</strong>
                                                 <p class="small text-muted mb-0">2-3 business days</p>
                                             </div>
-                                            <span class="fw-bold">$12.99</span>
+                                            <span class="fw-bold">₱300.00</span>
                                         </div>
                                     </label>
                                 </div>
@@ -210,7 +221,7 @@
                                                 <strong>Overnight Shipping</strong>
                                                 <p class="small text-muted mb-0">1 business day</p>
                                             </div>
-                                            <span class="fw-bold">$24.99</span>
+                                            <span class="fw-bold">₱500.00</span>
                                         </div>
                                     </label>
                                 </div>
@@ -226,54 +237,15 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="payment-methods mb-3">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="credit_card" checked>
-                                    <label class="form-check-label" for="credit_card">
-                                        <i class="bi bi-credit-card me-2"></i>Credit/Debit Card
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="paypal" value="paypal">
-                                    <label class="form-check-label" for="paypal">
-                                        <i class="bi bi-paypal me-2"></i>PayPal
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod">
-                                    <label class="form-check-label" for="cod">
-                                        <i class="bi bi-cash me-2"></i>Cash on Delivery
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div id="card-details">
-                                <div class="mb-3">
-                                    <label for="card_number" class="form-label">Card Number *</label>
-                                    <input type="text" class="form-control" id="card_number" placeholder="1234 5678 9012 3456" maxlength="19">
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="expiry_date" class="form-label">Expiry Date *</label>
-                                        <input type="text" class="form-control" id="expiry_date" placeholder="MM/YY" maxlength="5">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="cvv" class="form-label">CVV *</label>
-                                        <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="4">
+                            <input type="hidden" name="payment_method" value="cod">
+                            <div class="alert alert-light border mb-0">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-cash-coin me-2 fs-5"></i>
+                                    <div>
+                                        <strong>Cash on Delivery (COD)</strong>
+                                        <p class="text-muted mb-0 small">Payment is collected when your order arrives at your address.</p>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="card_name" class="form-label">Name on Card *</label>
-                                    <input type="text" class="form-control" id="card_name">
-                                </div>
-                            </div>
-                            
-                            <div id="paypal-info" style="display: none;">
-                                <p class="text-muted">You will be redirected to PayPal to complete your payment securely.</p>
-                            </div>
-                            
-                            <div id="cod-info" style="display: none;">
-                                <p class="text-muted">Pay with cash when your order is delivered. A small cash handling fee may apply.</p>
                             </div>
                         </div>
                     </div>
@@ -306,7 +278,7 @@
                             <!-- Pricing -->
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Subtotal:</span>
-                                <span id="checkout-subtotal">$0.00</span>
+                                <span id="checkout-subtotal">₱0.00</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Shipping:</span>
@@ -314,12 +286,12 @@
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Tax:</span>
-                                <span id="checkout-tax">$0.00</span>
+                                <span id="checkout-tax">₱0.00</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold fs-5">Total:</span>
-                                <span class="fw-bold fs-5" style="color: var(--primary-blue);" id="checkout-total">$0.00</span>
+                                <span class="fw-bold fs-5" style="color: var(--primary-blue);" id="checkout-total">₱0.00</span>
                             </div>
                             
                             <!-- Place Order Button -->
@@ -368,36 +340,6 @@ function setupEventListeners() {
     document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
         radio.addEventListener('change', updateShippingCost);
     });
-    
-    // Payment method change
-    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            document.getElementById('card-details').style.display = this.value === 'credit_card' ? 'block' : 'none';
-            document.getElementById('paypal-info').style.display = this.value === 'paypal' ? 'block' : 'none';
-            document.getElementById('cod-info').style.display = this.value === 'cod' ? 'block' : 'none';
-        });
-    });
-    
-    // Card number formatting
-    document.getElementById('card_number').addEventListener('input', function() {
-        let value = this.value.replace(/\D/g, '');
-        value = value.replace(/(.{4})/g, '$1 ').trim();
-        this.value = value;
-    });
-    
-    // Expiry date formatting
-    document.getElementById('expiry_date').addEventListener('input', function() {
-        let value = this.value.replace(/\D/g, '');
-        if (value.length >= 2) {
-            value = value.substring(0, 2) + '/' + value.substring(2, 4);
-        }
-        this.value = value;
-    });
-    
-    // CVV numeric only
-    document.getElementById('cvv').addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-    });
 }
 
 function loadCheckoutItems() {
@@ -411,14 +353,14 @@ function loadCheckoutItems() {
         
         return `
             <div class="d-flex align-items-center mb-3">
-                <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
+                <img src="${getProductPrimaryImage(product)}" 
                      alt="${product.name}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
                 <div class="flex-grow-1">
                     <h6 class="mb-0">${product.name}</h6>
-                    <small class="text-muted">Qty: ${quantity} × $${product.price}</small>
+                    <small class="text-muted">Qty: ${quantity} × ${formatPeso(product.price)}</small>
                     ${product.size ? `<br><small class="text-muted">Size: ${product.size}</small>` : ''}
                 </div>
-                <span class="fw-bold">$${subtotal}</span>
+                <span class="fw-bold">${formatPeso(subtotal)}</span>
             </div>
         `;
     }).join('');
@@ -444,13 +386,13 @@ function updateCheckostTotal() {
     if (selectedShipping) {
         switch (selectedShipping.value) {
             case 'express':
-                shippingCost = 12.99;
+                shippingCost = 300;
                 break;
             case 'overnight':
-                shippingCost = 24.99;
+                shippingCost = 500;
                 break;
             default:
-                shippingCost = subtotal >= 50 ? 0 : 9.99;
+                shippingCost = subtotal >= 1000 ? 0 : 300;
         }
     }
     
@@ -458,10 +400,10 @@ function updateCheckostTotal() {
     const tax = subtotal * taxRate;
     const total = subtotal + shippingCost + tax;
     
-    document.getElementById('checkout-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('checkout-shipping').textContent = shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`;
-    document.getElementById('checkout-tax').textContent = `$${tax.toFixed(2)}`;
-    document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('checkout-subtotal').textContent = formatPeso(subtotal);
+    document.getElementById('checkout-shipping').textContent = shippingCost === 0 ? 'Free' : formatPeso(shippingCost);
+    document.getElementById('checkout-tax').textContent = formatPeso(tax);
+    document.getElementById('checkout-total').textContent = formatPeso(total);
 }
 
 // Fix the function name typo
@@ -473,28 +415,78 @@ function placeOrder() {
     if (!validateForm()) {
         return;
     }
-    
+
+    const placeOrderBtn = document.querySelector('button[onclick="placeOrder()"]');
+    const originalText = placeOrderBtn ? placeOrderBtn.innerHTML : '';
+    const shippingAddress = [
+        document.getElementById('address').value,
+        document.getElementById('city').value,
+        document.getElementById('state').value,
+        document.getElementById('zip').value
+    ].filter(Boolean).join(', ');
+
+    const cartItems = Object.values(cart).map(item => ({
+        product_id: item.product?.id,
+        quantity: Number(item.quantity || 1)
+    })).filter(item => item.product_id);
+
+    if (cartItems.length === 0) {
+        showToast('Your cart is empty', 'warning');
+        return;
+    }
+
     // Show loading state
-    const placeOrderBtn = event.target;
-    const originalText = placeOrderBtn.innerHTML;
-    placeOrderBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-    placeOrderBtn.disabled = true;
-    
-    // Simulate order processing
-    setTimeout(() => {
-        // For now, just show success and redirect
+    if (placeOrderBtn) {
+        placeOrderBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        placeOrderBtn.disabled = true;
+    }
+
+    fetch('/checkout', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+        },
+        body: JSON.stringify({
+            shipping_address: shippingAddress,
+            method: 'COD',
+            cart_items: cartItems
+        })
+    })
+    .then(async response => {
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Unable to place order');
+            }
+
+            throw new Error('Checkout request failed. Please log in again and retry.');
+        }
+        return response.json();
+    })
+    .then(data => {
         showToast('Order placed successfully! 🎉', 'success');
-        
-        // Clear cart
         cart = {};
         localStorage.removeItem('cart');
         updateCartCount();
-        
-        // Redirect to success page (for now, redirect to homepage)
-        setTimeout(() => {
-            window.location.href = '{{ route("homepage") }}';
-        }, 2000);
-    }, 2000);
+
+        const redirectUrl = data.redirect_url || '{{ route("orders.index") }}';
+        const orderId = data.order?.id || '';
+        const suffix = orderId ? (redirectUrl.includes('?') ? `&placed=${orderId}` : `?placed=${orderId}`) : '';
+        window.location.href = `${redirectUrl}${suffix}`;
+    })
+    .catch(error => {
+        console.error('Checkout error:', error);
+        showToast(error.message || 'Unable to place order right now.', 'error');
+
+        if (placeOrderBtn) {
+            placeOrderBtn.innerHTML = originalText;
+            placeOrderBtn.disabled = false;
+        }
+    });
 }
 
 function validateForm() {
@@ -515,21 +507,6 @@ function validateForm() {
         }
     });
     
-    // Validate payment method specific fields
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    if (paymentMethod === 'credit_card') {
-        const cardFields = ['card_number', 'expiry_date', 'cvv', 'card_name'];
-        cardFields.forEach(field => {
-            const element = document.getElementById(field);
-            if (!element.value.trim()) {
-                element.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                element.classList.remove('is-invalid');
-            }
-        });
-    }
-    
     if (!isValid) {
         showToast('Please fill in all required fields', 'error');
     }
@@ -540,6 +517,45 @@ function validateForm() {
 function loginUser() {
     // Mock login functionality
     showToast('Login functionality will be implemented with authentication system', 'info');
+}
+
+function formatPeso(value) {
+    const amount = Number(value || 0);
+    return `₱${amount.toFixed(2)}`;
+}
+
+function resolveProductImageUrl(path) {
+    if (!path) {
+        return '/img/logo.png';
+    }
+
+    const raw = String(path).trim();
+    if (/^https?:\/\//i.test(raw)) {
+        return raw;
+    }
+
+    let clean = raw.replace(/^\/+/, '');
+    if (clean.startsWith('public/')) {
+        clean = clean.slice(7);
+    }
+
+    if (clean.startsWith('storage/') || clean.startsWith('img/')) {
+        return `/${clean}`;
+    }
+
+    if (clean.includes('/')) {
+        return `/storage/${clean}`;
+    }
+
+    return `/img/${clean}`;
+}
+
+function getProductPrimaryImage(product) {
+    const firstImage = Array.isArray(product.images) && product.images.length > 0
+        ? product.images.find(Boolean)
+        : null;
+
+    return resolveProductImageUrl(firstImage);
 }
 </script>
 

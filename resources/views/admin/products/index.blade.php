@@ -421,6 +421,14 @@
                         <input type="number" class="form-control" name="quantity" id="restock_quantity" min="1" required>
                     </div>
                     <div class="mb-3">
+                        <label for="restock_supplier" class="form-label">Supplier <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="supplier" id="restock_supplier" required placeholder="E.g., ABC Supplies Co.">
+                    </div>
+                    <div class="mb-3">
+                        <label for="restock_unit_cost" class="form-label">Unit Cost (₱) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="unit_cost" id="restock_unit_cost" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
                         <label for="restock_note" class="form-label">Note (optional)</label>
                         <textarea class="form-control" name="note" id="restock_note" rows="2" placeholder="E.g., Supplier, reason for restock..."></textarea>
                     </div>
@@ -669,6 +677,8 @@ function restockProduct(id, name) {
     document.getElementById('restock_product_id').value = id;
     document.getElementById('restock_product_name').textContent = name;
     document.getElementById('restock_quantity').value = '';
+    document.getElementById('restock_supplier').value = '';
+    document.getElementById('restock_unit_cost').value = '';
     document.getElementById('restock_note').value = '';
     
     const modal = new bootstrap.Modal(document.getElementById('restockModal'));

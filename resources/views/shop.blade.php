@@ -175,9 +175,12 @@ function loadProducts() {
     document.getElementById('no-products-state').style.display = 'none';
     
     // Build query string
-    const params = new URLSearchParams({
-        page: currentPage,
-        ...currentFilters
+    const params = new URLSearchParams({ page: currentPage });
+
+    Object.entries(currentFilters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && String(value).trim() !== '') {
+            params.set(key, value);
+        }
     });
     
     fetch(`/api/products?${params.toString()}`)
@@ -190,6 +193,76 @@ function loadProducts() {
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('no-products-state').style.display = 'block';
         });
+}
+
+function renderProductImages(product) {
+    const imagePaths = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
+
+    if (imagePaths.length === 0) {
+        return `<img src="/img/logo.png" class="card-img-top" alt="${product.name}" style="height: 250px; object-fit: cover;">`;
+    }
+
+    const carouselId = `shopProductCarousel${product.id}`;
+    const items = imagePaths
+        .map((path, index) => `
+            <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                <img src="${resolveProductImageUrl(path)}" class="card-img-top" alt="${product.name}" style="height: 250px; object-fit: cover;" onerror="this.onerror=null;this.src='/img/logo.png';">
+            </div>
+        `)
+        .join('');
+
+    const controls = imagePaths.length > 1
+        ? `
+            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        `
+        : '';
+
+    return `
+        <div id="${carouselId}" class="carousel slide" data-bs-ride="false">
+            <div class="carousel-inner">
+                ${items}
+            </div>
+            ${controls}
+        </div>
+    `;
+}
+
+function resolveProductImageUrl(path) {
+    if (!path) {
+        return '/img/logo.png';
+    }
+
+    const raw = String(path).trim();
+    if (/^https?:\/\//i.test(raw)) {
+        return raw;
+    }
+
+    let clean = raw.replace(/^\/+/, '');
+    if (clean.startsWith('public/')) {
+        clean = clean.slice(7);
+    }
+
+    if (clean.startsWith('storage/') || clean.startsWith('img/')) {
+        return `/${clean}`;
+    }
+
+    if (clean.includes('/')) {
+        return `/storage/${clean}`;
+    }
+
+    return `/img/${clean}`;
+}
+
+function formatPeso(value) {
+    const amount = Number(value || 0);
+    return `₱${amount.toFixed(2)}`;
 }
 
 function displayProducts(data) {
@@ -212,9 +285,8 @@ function displayProducts(data) {
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="product-card h-100 shadow-sm">
                 <div class="position-relative">
-                    <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                         class="card-img-top" alt="${product.name}" style="height: 250px; object-fit: cover;">
-                    ${product.inventory && product.inventory.stock < 10 ? 
+                    ${renderProductImages(product)}
+                    ${Number(product.stock || 0) > 0 && Number(product.stock || 0) < 10 ? 
                         '<div class="position-absolute top-0 start-0 m-2"><span class="badge bg-warning">Low Stock</span></div>' : ''
                     }
                     <div class="position-absolute top-0 end-0 m-2">
@@ -229,21 +301,21 @@ function displayProducts(data) {
                     
                     <div class="product-meta mb-3">
                         <small class="text-muted">SKU: ${product.sku}</small>
-                        ${product.inventory ? 
-                            `<small class="text-success d-block">In Stock (${product.inventory.stock})</small>` :
-                            '<small class="text-danger d-block">Out of Stock</small>'
+                        ${Number(product.stock || 0) > 0
+                            ? `<small class="text-success d-block">In Stock (${product.stock})</small>`
+                            : '<small class="text-danger d-block">Out of Stock</small>'
                         }
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="price">
-                            <span class="fw-bold fs-5" style="color: var(--primary-blue-dark);">$${product.price}</span>
+                            <span class="fw-bold fs-5" style="color: var(--primary-blue-dark);">${formatPeso(product.price)}</span>
                         </div>
                         <div class="product-actions">
                             <button class="btn btn-outline-secondary btn-sm me-2" onclick="viewProduct(${product.id})">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="btn btn-primary-custom btn-sm" onclick="addToCart(${product.id}, ${JSON.stringify(product)})" ${!product.inventory || product.inventory.stock === 0 ? 'disabled' : ''}>
+                            <button class="btn btn-primary-custom btn-sm" onclick="addToCart(${product.id}, ${JSON.stringify(product)})" ${Number(product.stock || 0) === 0 ? 'disabled' : ''}>
                                 <i class="bi bi-bag-plus"></i>
                             </button>
                         </div>

@@ -146,6 +146,40 @@ document.addEventListener('DOMContentLoaded', function() {
     loadRecommendedProducts();
 });
 
+function resolveProductImageUrl(path) {
+    if (!path) {
+        return '/img/logo.png';
+    }
+
+    const raw = String(path).trim();
+    if (/^https?:\/\//i.test(raw)) {
+        return raw;
+    }
+
+    let clean = raw.replace(/^\/+/, '');
+    if (clean.startsWith('public/')) {
+        clean = clean.slice(7);
+    }
+
+    if (clean.startsWith('storage/') || clean.startsWith('img/')) {
+        return `/${clean}`;
+    }
+
+    if (clean.includes('/')) {
+        return `/storage/${clean}`;
+    }
+
+    return `/img/${clean}`;
+}
+
+function getProductPrimaryImage(product) {
+    const firstImage = Array.isArray(product.images) && product.images.length > 0
+        ? product.images.find(Boolean)
+        : null;
+
+    return resolveProductImageUrl(firstImage);
+}
+
 function loadCartItems() {
     const cartItems = Object.values(cart);
     const cartItemsList = document.getElementById('cart-items-list');
@@ -176,7 +210,7 @@ function loadCartItems() {
             <div class="border-bottom p-4" id="cart-item-${product.id}">
                 <div class="row align-items-center">
                     <div class="col-md-2 col-3 mb-3 mb-md-0">
-                        <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" 
+                        <img src="${getProductPrimaryImage(product)}" 
                              alt="${product.name}" class="img-fluid rounded">
                     </div>
                     <div class="col-md-4 col-9 mb-3 mb-md-0">
@@ -221,6 +255,9 @@ function updateQuantity(productId, newQuantity) {
         localStorage.setItem('cart', JSON.stringify(cart));
         loadCartItems();
         updateCartCount();
+        if (typeof renderCartPreview === 'function') {
+            renderCartPreview();
+        }
     }
 }
 
@@ -230,6 +267,9 @@ function removeFromCart(productId) {
         localStorage.setItem('cart', JSON.stringify(cart));
         loadCartItems();
         updateCartCount();
+        if (typeof renderCartPreview === 'function') {
+            renderCartPreview();
+        }
         showToast('Item removed from cart', 'success');
     }
 }
@@ -240,6 +280,9 @@ function clearCart() {
         localStorage.removeItem('cart');
         loadCartItems();
         updateCartCount();
+        if (typeof renderCartPreview === 'function') {
+            renderCartPreview();
+        }
         showToast('Cart cleared', 'success');
     }
 }
@@ -322,7 +365,7 @@ function loadRecommendedProducts() {
             const recommendedHTML = products.map(product => `
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="product-card h-100 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                        <img src="${getProductPrimaryImage(product)}" 
                              class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
                         <div class="card-body d-flex flex-column">
                             <h6 class="card-title fw-bold">${product.name}</h6>

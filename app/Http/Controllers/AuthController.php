@@ -80,7 +80,6 @@ class AuthController extends Controller
             'address' => $request->address,
             'photo' => $photoPath,
             'password' => Hash::make($request->password),
-            'status' => 'active',
             'role' => 'customer',
         ]);
 

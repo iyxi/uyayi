@@ -201,6 +201,61 @@ const topProductsChart = new Chart(document.getElementById('topProductsChart'), 
     </div>
 </div>
 
+<!-- Recent Transactions -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-cash-stack me-2"></i>Recent Transactions</h5>
+            </div>
+
+            @if(($stats['recent_transactions'] ?? collect())->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Method</th>
+                                <th>Amount</th>
+                                <th>Payment Status</th>
+                                <th>Order Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($stats['recent_transactions'] as $txn)
+                                <tr>
+                                    <td>{{ $txn->created_at ? \Illuminate\Support\Carbon::parse($txn->created_at)->format('M j, Y h:i A') : 'N/A' }}</td>
+                                    <td>{{ $txn->order->order_number ?? ('ORD-' . ($txn->order_id ?? 'N/A')) }}</td>
+                                    <td>{{ $txn->user->name ?? 'Guest' }}</td>
+                                    <td>{{ $txn->method ?? 'COD' }}</td>
+                                    <td><strong>₱{{ number_format($txn->amount ?? 0, 2) }}</strong></td>
+                                    <td>
+                                        <span class="status-badge status-{{ strtolower($txn->status ?? 'pending') }}">
+                                            {{ ucfirst($txn->status ?? 'Pending') }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-{{ strtolower($txn->order->status ?? 'pending') }}">
+                                            {{ ucfirst($txn->order->status ?? 'Pending') }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2 mb-0">No transactions yet</p>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
 <!-- Low Stock Modal -->
 <div class="modal fade" id="lowStockModal" tabindex="-1">
     <div class="modal-dialog">

@@ -71,17 +71,21 @@ function loadProductDetails(productId) {
     // Show loading state
     document.getElementById('product-content').innerHTML = document.getElementById('loading-template').innerHTML;
     
-    fetch(`/api/products`)
-        .then(response => response.json())
-        .then(data => {
-            const products = data.data || [];
-            const product = products.find(p => p.id == productId);
-            
+    fetch(`/api/products/${productId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Product not found');
+            }
+
+            return response.json();
+        })
+        .then(product => {
             if (product) {
                 displayProduct(product);
-            } else {
-                showProductError();
+                return;
             }
+
+            showProductError();
         })
         .catch(error => {
             console.error('Error loading product:', error);
@@ -89,38 +93,72 @@ function loadProductDetails(productId) {
         });
 }
 
+function getProductImages(product) {
+    if (Array.isArray(product.images) && product.images.length > 0) {
+        return product.images
+            .filter(Boolean)
+            .map(path => resolveProductImageUrl(path));
+    }
+
+    return ['/img/logo.png'];
+}
+
+function resolveProductImageUrl(path) {
+    if (!path) {
+        return '/img/logo.png';
+    }
+
+    const raw = String(path).trim();
+    if (/^https?:\/\//i.test(raw)) {
+        return raw;
+    }
+
+    let clean = raw.replace(/^\/+/, '');
+    if (clean.startsWith('public/')) {
+        clean = clean.slice(7);
+    }
+
+    if (clean.startsWith('storage/') || clean.startsWith('img/')) {
+        return `/${clean}`;
+    }
+
+    if (clean.includes('/')) {
+        return `/storage/${clean}`;
+    }
+
+    return `/img/${clean}`;
+}
+
+function formatPeso(value) {
+    const amount = Number(value || 0);
+    return `₱${amount.toFixed(2)}`;
+}
+
 function displayProduct(product) {
     document.getElementById('product-breadcrumb').textContent = product.name;
     document.title = `${product.name} - Uyayi`;
+    const imageUrls = getProductImages(product);
+    const mainImage = imageUrls[0];
+    const thumbnails = imageUrls.slice(0, 4);
     
     const productHTML = `
         <div class="col-lg-6 mb-4">
             <!-- Product Images -->
             <div class="product-images">
                 <div class="main-image mb-3">
-                    <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                    <img src="${mainImage}" 
                          alt="${product.name}" 
                          class="img-fluid rounded-3 shadow-sm"
                          id="main-product-image">
                 </div>
                 <div class="image-thumbnails">
                     <div class="row g-2">
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" 
-                                 alt="View 1" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
-                        </div>
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" 
-                                 alt="View 2" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
-                        </div>
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" 
-                                 alt="View 3" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
-                        </div>
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" 
-                                 alt="View 4" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
-                        </div>
+                        ${thumbnails.map((imageUrl, index) => `
+                            <div class="col-3">
+                                <img src="${imageUrl}" 
+                                     alt="${product.name} view ${index + 1}" class="img-fluid rounded thumbnail-img ${index === 0 ? 'border border-success' : ''}" onclick="changeMainImage(this.src, this)">
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             </div>
@@ -146,16 +184,16 @@ function displayProduct(product) {
                 </div>
                 
                 <div class="price mb-4">
-                    <span class="display-5 fw-bold" style="color: var(--primary-blue);">$${product.price}</span>
-                    <span class="text-muted text-decoration-line-through ms-2">$${(parseFloat(product.price) * 1.25).toFixed(2)}</span>
+                    <span class="display-5 fw-bold" style="color: var(--primary-blue);">${formatPeso(product.price)}</span>
+                    <span class="text-muted text-decoration-line-through ms-2">${formatPeso(parseFloat(product.price || 0) * 1.25)}</span>
                     <span class="badge bg-success ms-2">20% OFF</span>
                 </div>
                 
                 <div class="product-meta mb-4">
                     <p><strong>SKU:</strong> ${product.sku}</p>
                     <p><strong>Availability:</strong> 
-                        ${product.inventory && product.inventory.stock > 0 ? 
-                            `<span class="text-success">In Stock (${product.inventory.stock} available)</span>` : 
+                        ${Number(product.stock || 0) > 0 ? 
+                            `<span class="text-success">In Stock (${product.stock} available)</span>` : 
                             '<span class="text-danger">Out of Stock</span>'
                         }
                     </p>
@@ -208,13 +246,13 @@ function displayProduct(product) {
                             <label for="quantity" class="form-label fw-bold">Quantity:</label>
                             <div class="input-group">
                                 <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">-</button>
-                                <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="${product.inventory ? product.inventory.stock : 10}">
+                                <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="${Number(product.stock || 0) > 0 ? product.stock : 10}">
                                 <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">+</button>
                             </div>
                         </div>
                         <div class="col-8">
                             <label class="form-label fw-bold d-block">&nbsp;</label>
-                            <button class="btn btn-primary-custom w-100 btn-lg" onclick="addToCartWithDetails(${product.id}, ${JSON.stringify(product)})" ${!product.inventory || product.inventory.stock === 0 ? 'disabled' : ''}>
+                            <button class="btn btn-primary-custom w-100 btn-lg" onclick="addToCartWithDetails(${product.id}, ${JSON.stringify(product)})" ${Number(product.stock || 0) === 0 ? 'disabled' : ''}>
                                 <i class="bi bi-bag-plus me-2"></i>Add to Cart
                             </button>
                         </div>
@@ -242,7 +280,7 @@ function displayProduct(product) {
                     <div class="card border-0" style="background-color: var(--warm-beige);">
                         <div class="card-body">
                             <h6 class="fw-bold mb-2">Shipping & Returns</h6>
-                            <p class="small mb-1"><i class="bi bi-truck me-2 text-success"></i>Free shipping on orders over $50</p>
+                            <p class="small mb-1"><i class="bi bi-truck me-2 text-success"></i>Free shipping on orders over ₱50</p>
                             <p class="small mb-1"><i class="bi bi-arrow-counterclockwise me-2 text-success"></i>30-day easy returns</p>
                             <p class="small mb-0"><i class="bi bi-shield-check me-2 text-success"></i>Quality guarantee</p>
                         </div>
@@ -267,11 +305,11 @@ function loadRelatedProducts() {
             const relatedHTML = products.map(product => `
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="product-card h-100 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                        <img src="${getProductImages(product)[0]}" 
                              class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
                         <div class="card-body">
                             <h6 class="card-title fw-bold">${product.name}</h6>
-                            <p class="text-muted mb-2">$${product.price}</p>
+                            <p class="text-muted mb-2">${formatPeso(product.price)}</p>
                             <a href="/product/${product.id}" class="btn btn-outline-success btn-sm w-100">View Details</a>
                         </div>
                     </div>
@@ -283,14 +321,17 @@ function loadRelatedProducts() {
         .catch(error => console.error('Error loading related products:', error));
 }
 
-function changeMainImage(src) {
-    document.getElementById('main-product-image').src = src.replace('w=200', 'w=800');
+function changeMainImage(src, selectedThumb) {
+    document.getElementById('main-product-image').src = src;
     
     // Update thumbnail active state
     document.querySelectorAll('.thumbnail-img').forEach(img => {
         img.classList.remove('border', 'border-success');
     });
-    event.target.classList.add('border', 'border-success');
+
+    if (selectedThumb) {
+        selectedThumb.classList.add('border', 'border-success');
+    }
 }
 
 function increaseQuantity() {

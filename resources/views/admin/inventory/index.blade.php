@@ -95,7 +95,30 @@
             
             <!-- Pagination -->
             <div class="card-footer bg-white">
-                {{ $products->links() }}
+                @if($products->hasPages())
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="small text-muted">
+                            Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} of {{ $products->total() }} results
+                        </div>
+                        <nav aria-label="Inventory pagination">
+                            <ul class="pagination pagination-sm mb-0">
+                                @if($products->onFirstPage())
+                                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                                @else
+                                    <li class="page-item"><a class="page-link" href="{{ $products->previousPageUrl() }}">Previous</a></li>
+                                @endif
+
+                                <li class="page-item disabled"><span class="page-link">Page {{ $products->currentPage() }} of {{ $products->lastPage() }}</span></li>
+
+                                @if($products->hasMorePages())
+                                    <li class="page-item"><a class="page-link" href="{{ $products->nextPageUrl() }}">Next</a></li>
+                                @else
+                                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                @endif
+                            </ul>
+                        </nav>
+                    </div>
+                @endif
             </div>
         @else
             <div class="text-center py-5">
@@ -126,6 +149,14 @@
                         <input type="number" class="form-control" name="quantity" min="1" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Supplier</label>
+                        <input type="text" class="form-control" name="supplier" id="restockSupplier" required placeholder="e.g., ABC Supplies Co.">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unit Cost (₱)</label>
+                        <input type="number" class="form-control" name="unit_cost" id="restockUnitCost" min="0" step="0.01" required placeholder="e.g., 45.00">
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Note (Optional)</label>
                         <textarea class="form-control" name="note" rows="2" placeholder="e.g., Supplier delivery"></textarea>
                     </div>
@@ -144,6 +175,8 @@ function setRestockProduct(id, name, stock) {
     document.getElementById('restockProductId').value = id;
     document.getElementById('restockProductName').textContent = name;
     document.getElementById('restockCurrentStock').textContent = stock;
+    document.getElementById('restockSupplier').value = '';
+    document.getElementById('restockUnitCost').value = '';
 }
 </script>
 @endsection

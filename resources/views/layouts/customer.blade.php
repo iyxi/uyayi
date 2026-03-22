@@ -276,8 +276,9 @@
                 
                 <ul class="navbar-nav">
                     <li class="nav-item me-3">
-                        <a class="nav-link position-relative" href="{{ route('cart.view') }}">
+                        <a class="nav-link position-relative d-flex align-items-center gap-2" href="{{ route('cart.view') }}">
                             <i class="bi bi-bag"></i>
+                            <span class="d-none d-md-inline">Cart</span>
                             <span class="cart-count cart-badge">0</span>
                         </a>
                     </li>
@@ -291,7 +292,7 @@
                                     <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Admin Dashboard</a></li>
                                 @else
                                     <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person"></i> My Account</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-box"></i> My Orders</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('orders.index') }}"><i class="bi bi-box"></i> My Orders</a></li>
                                 @endif
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
@@ -403,7 +404,7 @@
             const count = Object.keys(cart).length;
             document.querySelector('.cart-count').textContent = count;
         }
-        
+
         function addToCart(productId, product, quantity = 1) {
             cart[productId] = {
                 product: product,
