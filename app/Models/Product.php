@@ -38,6 +38,11 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
     public function toSearchableArray(): array
     {
         return [

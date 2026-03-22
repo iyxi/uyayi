@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChartController;
+use App\Http\Controllers\ReviewController;
 
 // Charts page
 Route::get('/charts', [ChartController::class, 'index'])->name('charts.index');
@@ -21,6 +22,7 @@ Route::get('/checkout-page', [CustomerController::class, 'checkoutPage'])->name(
 // API routes for cart functionality
 Route::get('/api/products', [CustomerController::class, 'index'])->name('api.products');
 Route::get('/api/products/{product}', [CustomerController::class, 'showProductApi'])->name('api.products.show');
+Route::get('/api/products/{product}/reviews', [ReviewController::class, 'index'])->name('api.products.reviews.index');
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
@@ -39,6 +41,8 @@ Route::middleware(['auth'])->group(function(){
     Route::post('/checkout', [CustomerController::class, 'checkout'])->name('checkout');
     Route::get('/my-orders', [CustomerController::class, 'myOrders'])->name('orders.index');
     Route::get('/orders/{order}', [CustomerController::class, 'showOrder'])->name('orders.show');
+    Route::post('/api/products/{product}/reviews', [ReviewController::class, 'upsert'])->name('api.products.reviews.upsert');
+    Route::put('/api/products/{product}/reviews', [ReviewController::class, 'upsert']);
     
     // Profile routes
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
@@ -94,6 +98,8 @@ Route::prefix('admin')->middleware(['admin'])->group(function(){
     Route::get('/expenses', [AdminController::class, 'expenses'])->name('admin.expenses');
     Route::post('/expenses', [AdminController::class, 'storeExpense'])->name('admin.expenses.store');
     Route::delete('/expenses/{id}', [AdminController::class, 'destroyExpense'])->name('admin.expenses.destroy');
+    Route::get('/reviews', [AdminController::class, 'reviews'])->name('admin.reviews');
+    Route::delete('/reviews/{review}', [AdminController::class, 'destroyReview'])->name('admin.reviews.destroy');
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
     
     // Settings

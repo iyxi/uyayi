@@ -717,6 +717,11 @@
                 <span>Expenses</span>
             </a>
 
+            <a href="{{ route('admin.reviews') }}" class="sidebar-link {{ request()->routeIs('admin.reviews*') ? 'active' : '' }}">
+                <i class="bi bi-chat-left-quote"></i>
+                <span>Reviews</span>
+            </a>
+
             <a href="{{ route('admin.reports') }}" class="sidebar-link {{ request()->routeIs('admin.reports') ? 'active' : '' }}">
                 <i class="bi bi-graph-up"></i>
                 <span>Reports</span>

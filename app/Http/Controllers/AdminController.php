@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Payment;
 use App\Models\Expense;
 use App\Models\Category;
+use App\Models\Review;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;  
@@ -575,6 +576,27 @@ class AdminController extends Controller
     {
         Expense::findOrFail($id)->delete();
         return redirect()->route('admin.expenses')->with('success', 'Expense deleted!');
+    }
+
+    public function reviews()
+    {
+        $reviews = Review::with(['user', 'reviewable'])
+            ->latest()
+            ->paginate(20);
+
+        $stats = [
+            'count' => Review::count(),
+            'average' => round((float) Review::avg('rating'), 2),
+        ];
+
+        return view('admin.reviews.index', compact('reviews', 'stats'));
+    }
+
+    public function destroyReview(Review $review)
+    {
+        $review->delete();
+
+        return redirect()->route('admin.reviews')->with('success', 'Review deleted successfully!');
     }
 
     // Reports

@@ -61,6 +61,9 @@
 
 @push('scripts')
 <script>
+const IS_AUTHENTICATED = @json(auth()->check());
+const CSRF_TOKEN = @json(csrf_token());
+
 document.addEventListener('DOMContentLoaded', function() {
     const productId = window.location.pathname.split('/').pop();
     loadProductDetails(productId);
@@ -286,11 +289,182 @@ function displayProduct(product) {
                         </div>
                     </div>
                 </div>
+
+                <div class="mt-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                <h5 class="fw-bold mb-0" style="color: var(--primary-blue);">Customer Reviews</h5>
+                                <div id="review-summary" class="text-muted small">Loading reviews...</div>
+                            </div>
+                            <div id="review-form-wrapper" class="mb-3"></div>
+                            <div id="reviews-list"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
     
     document.getElementById('product-content').innerHTML = productHTML;
+    loadProductReviews(product.id);
+}
+
+function renderStars(rating) {
+    const full = Math.max(0, Math.min(5, Number(rating || 0)));
+    let html = '';
+    for (let i = 1; i <= 5; i += 1) {
+        html += `<i class="bi ${i <= full ? 'bi-star-fill text-warning' : 'bi-star text-muted'}"></i>`;
+    }
+    return html;
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+
+    return String(text || '').replace(/[&<>"']/g, m => map[m]);
+}
+
+function loadProductReviews(productId) {
+    fetch(`/api/products/${productId}/reviews`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load reviews');
+            }
+            return response.json();
+        })
+        .then(payload => {
+            const summary = payload.summary || { average_rating: 0, count: 0 };
+            const averageRating = Number(summary.average_rating || 0);
+            const count = Number(summary.count || 0);
+
+            const summaryEl = document.getElementById('review-summary');
+            if (summaryEl) {
+                summaryEl.innerHTML = `${renderStars(Math.round(averageRating))} <span class="ms-1">${averageRating.toFixed(2)} / 5 (${count} review${count === 1 ? '' : 's'})</span>`;
+            }
+
+            renderReviewForm(productId, payload);
+            renderReviewList(payload.reviews || []);
+        })
+        .catch(error => {
+            console.error(error);
+            const summaryEl = document.getElementById('review-summary');
+            if (summaryEl) {
+                summaryEl.textContent = 'Unable to load reviews right now.';
+            }
+        });
+}
+
+function renderReviewForm(productId, payload) {
+    const wrapper = document.getElementById('review-form-wrapper');
+    if (!wrapper) return;
+
+    if (!IS_AUTHENTICATED) {
+        wrapper.innerHTML = `<div class="alert alert-info mb-0">Please <a href="/login">log in</a> to write a review.</div>`;
+        return;
+    }
+
+    if (!payload.can_review) {
+        wrapper.innerHTML = `<div class="alert alert-warning mb-0">Only customers who bought and completed this product order can post a review.</div>`;
+        return;
+    }
+
+    const existing = payload.user_review || null;
+    const selectedRating = existing ? Number(existing.rating) : 5;
+    const comment = existing?.comment ? escapeHtml(existing.comment) : '';
+
+    wrapper.innerHTML = `
+        <form id="review-form" class="border rounded p-3" style="background-color: var(--soft-cream);">
+            <h6 class="fw-bold mb-2">${existing ? 'Update Your Review' : 'Write a Review'}</h6>
+            <div class="mb-2">
+                <label class="form-label mb-1">Rating</label>
+                <select class="form-select" id="review-rating" required>
+                    <option value="5" ${selectedRating === 5 ? 'selected' : ''}>5 - Excellent</option>
+                    <option value="4" ${selectedRating === 4 ? 'selected' : ''}>4 - Very Good</option>
+                    <option value="3" ${selectedRating === 3 ? 'selected' : ''}>3 - Good</option>
+                    <option value="2" ${selectedRating === 2 ? 'selected' : ''}>2 - Fair</option>
+                    <option value="1" ${selectedRating === 1 ? 'selected' : ''}>1 - Poor</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <label class="form-label mb-1">Comment</label>
+                <textarea class="form-control" id="review-comment" rows="3" maxlength="1000" placeholder="Share your experience...">${comment}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary-custom btn-sm">${existing ? 'Update Review' : 'Post Review'}</button>
+        </form>
+    `;
+
+    const form = document.getElementById('review-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const rating = Number(document.getElementById('review-rating').value || 5);
+        const reviewComment = document.getElementById('review-comment').value.trim();
+
+        fetch(`/api/products/${productId}/reviews`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                rating,
+                comment: reviewComment
+            })
+        })
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to save review');
+                }
+                return data;
+            })
+            .then(data => {
+                showToast(data.message || 'Review saved.', 'success');
+                loadProductReviews(productId);
+            })
+            .catch(err => {
+                showToast(err.message || 'Unable to save review.', 'error');
+            });
+    });
+}
+
+function renderReviewList(reviews) {
+    const list = document.getElementById('reviews-list');
+    if (!list) return;
+
+    if (!Array.isArray(reviews) || reviews.length === 0) {
+        list.innerHTML = '<p class="text-muted mb-0">No reviews yet. Be the first to review this product.</p>';
+        return;
+    }
+
+    list.innerHTML = reviews.map(review => {
+        const createdAt = review.created_at ? new Date(review.created_at).toLocaleString() : 'N/A';
+        const reviewerName = escapeHtml(review.user?.name || 'Anonymous');
+        const reviewComment = escapeHtml(review.comment || 'No comment provided.');
+
+        return `
+            <div class="border-top pt-3 mt-3">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <div class="fw-semibold">${reviewerName}</div>
+                        <div class="small">${renderStars(review.rating)}</div>
+                    </div>
+                    <div class="small text-muted">${createdAt}</div>
+                </div>
+                <p class="mt-2 mb-0 text-muted">${reviewComment}</p>
+            </div>
+        `;
+    }).join('');
 }
 
 function showProductError() {
