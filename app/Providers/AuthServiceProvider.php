@@ -27,8 +27,7 @@ class AuthServiceProvider extends ServiceProvider
 
         // Define admin gate
         \Illuminate\Support\Facades\Gate::define('admin-area', function ($user) {
-            // For now, check if email is admin - you can improve this with roles later
-            return $user->email === 'admin@uyayi.com';
+            return $user->isAdmin();
         });
     }
 }

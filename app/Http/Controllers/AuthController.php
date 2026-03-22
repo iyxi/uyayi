@@ -28,6 +28,13 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        $user = User::where('email', $credentials['email'])->first();
+        if ($user && !$user->isActive()) {
+            return back()->withErrors([
+                'email' => 'Your account is inactive. Please contact the administrator.',
+            ])->onlyInput('email');
+        }
+
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended(route('homepage'));
@@ -58,6 +65,7 @@ class AuthController extends Controller
             'address' => ['nullable', 'string'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], // 2MB max
             'password' => ['required', 'confirmed', Password::min(8)],
+            'terms' => ['accepted'],
         ]);
 
         $photoPath = null;

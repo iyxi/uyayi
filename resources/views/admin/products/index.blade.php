@@ -26,6 +26,18 @@
     </div>
 </div>
 
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    <ul class="mb-0 mt-2">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <!-- Products Table -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white">
@@ -196,7 +208,10 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="name" id="name" required>
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="name" value="{{ old('name') }}" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -204,7 +219,10 @@
                                 <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">₱</span>
-                                    <input type="number" class="form-control" name="price" id="price" step="0.01" min="0" required>
+                                    <input type="number" class="form-control @error('price') is-invalid @enderror" name="price" id="price" value="{{ old('price') }}" step="0.01" min="0" required>
+                                    @error('price')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -215,34 +233,51 @@
                                     <option value="">Select Category (Optional)</option>
                                     @if(isset($categories))
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                            <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
                                         @endforeach
                                     @endif
                                 </select>
+                                @error('category_id')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="stock" class="form-label">Initial Stock <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" name="stock" id="stock" min="0" required>
+                                <input type="number" class="form-control @error('stock') is-invalid @enderror" name="stock" id="stock" value="{{ old('stock') }}" min="0" required>
+                                @error('stock')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="images" class="form-label">Product Images</label>
-                                <input type="file" class="form-control" name="images[]" id="images" multiple accept="image/*">
+                                <input type="file" class="form-control @error('images') is-invalid @enderror" name="images[]" id="images" multiple accept="image/*">
                                 <small class="text-muted">You can select multiple images. Max 2MB each.</small>
+                                @error('images')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                @foreach($errors->get('images.*') as $messages)
+                                    @foreach($messages as $message)
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @endforeach
+                                @endforeach
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" name="description" id="description" rows="3"></textarea>
+                                <textarea class="form-control @error('description') is-invalid @enderror" name="description" id="description" rows="3">{{ old('description') }}</textarea>
+                                @error('description')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="visible" id="visible" value="1" checked>
+                                <input class="form-check-input" type="checkbox" name="visible" id="visible" value="1" @checked(old('visible', '1') == '1')>
                                 <label class="form-check-label" for="visible">
                                     Make product visible in store
                                 </label>
@@ -273,11 +308,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="edit_form_alert" class="alert alert-danger d-none" role="alert"></div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="edit_name" class="form-label">Product Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="name" id="edit_name" required>
+                                <div class="invalid-feedback" data-error-for="name"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -293,14 +330,16 @@
                                 <div class="input-group">
                                     <span class="input-group-text">₱</span>
                                     <input type="number" class="form-control" name="price" id="edit_price" step="0.01" min="0" required>
+                                    <div class="invalid-feedback" data-error-for="price"></div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="edit_stock" class="form-label">Current Stock</label>
-                                <input type="number" class="form-control" name="stock" id="edit_stock" min="0">
+                                <input type="number" class="form-control" name="stock" id="edit_stock" min="0" required>
                                 <small class="text-muted">Use Restock button to add more inventory</small>
+                                <div class="invalid-feedback" data-error-for="stock"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -314,6 +353,7 @@
                                         @endforeach
                                     @endif
                                 </select>
+                                <div class="invalid-feedback" data-error-for="category_id"></div>
                             </div>
                         </div>
                         <div class="col-12">
@@ -329,12 +369,14 @@
                                 <label for="edit_images" class="form-label">Add More Images</label>
                                 <input type="file" class="form-control" name="images[]" id="edit_images" multiple accept="image/*">
                                 <small class="text-muted">You can select multiple images. Max 2MB each.</small>
+                                <div class="invalid-feedback" data-error-for="images"></div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="mb-3">
                                 <label for="edit_description" class="form-label">Description</label>
                                 <textarea class="form-control" name="description" id="edit_description" rows="3"></textarea>
+                                <div class="invalid-feedback" data-error-for="description"></div>
                             </div>
                         </div>
                         <div class="col-12">
@@ -452,6 +494,8 @@ function viewImages(id, name) {
 }
 
 function editProduct(id) {
+    clearEditProductValidation();
+
     // Fetch product data
     fetch(`/admin/products/${id}/json`)
         .then(response => response.json())
@@ -525,9 +569,58 @@ function editProduct(id) {
         });
 }
 
+function clearEditProductValidation() {
+    const form = document.getElementById('editProductForm');
+    if (!form) return;
+
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    form.querySelectorAll('[data-error-for]').forEach(el => {
+        el.textContent = '';
+    });
+
+    const alertBox = document.getElementById('edit_form_alert');
+    if (alertBox) {
+        alertBox.classList.add('d-none');
+        alertBox.textContent = '';
+    }
+}
+
+function applyEditProductValidationErrors(errors) {
+    const fieldToInputId = {
+        name: 'edit_name',
+        price: 'edit_price',
+        stock: 'edit_stock',
+        category_id: 'edit_category_id',
+        description: 'edit_description',
+        images: 'edit_images',
+    };
+
+    Object.entries(errors).forEach(([field, messages]) => {
+        const normalizedField = field.startsWith('images.') ? 'images' : field;
+        const inputId = fieldToInputId[normalizedField];
+
+        if (inputId) {
+            const input = document.getElementById(inputId);
+            if (input) input.classList.add('is-invalid');
+
+            const errorEl = document.querySelector(`[data-error-for="${normalizedField}"]`);
+            if (errorEl) {
+                errorEl.textContent = Array.isArray(messages) ? messages[0] : String(messages);
+            }
+        }
+    });
+}
+
 // Handle edit form submission
 document.getElementById('editProductForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (!this.checkValidity()) {
+        this.reportValidity();
+        return;
+    }
+
+    clearEditProductValidation();
     
     const formData = new FormData(this);
     const productId = this.action.split('/').pop();
@@ -536,10 +629,18 @@ document.getElementById('editProductForm').addEventListener('submit', function(e
         method: 'POST',
         body: formData,
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => response.json())
+    .then(async response => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw { status: response.status, payload };
+        }
+        return payload;
+    })
     .then(data => {
         // Close modal
         bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
@@ -549,8 +650,18 @@ document.getElementById('editProductForm').addEventListener('submit', function(e
         window.location.reload();
     })
     .catch(error => {
+        if (error.status === 422 && error.payload && error.payload.errors) {
+            applyEditProductValidationErrors(error.payload.errors);
+            return;
+        }
+
+        const alertBox = document.getElementById('edit_form_alert');
+        if (alertBox) {
+            alertBox.textContent = 'Error updating product. Please try again.';
+            alertBox.classList.remove('d-none');
+        }
+
         console.error('Error:', error);
-        alert('Error updating product');
     });
 });
 
@@ -587,5 +698,15 @@ function deleteProduct(id, name) {
         });
     }
 }
+
+@if($errors->any() && old('name'))
+document.addEventListener('DOMContentLoaded', function () {
+    const addModalElement = document.getElementById('addProductModal');
+    if (addModalElement) {
+        const addModal = new bootstrap.Modal(addModalElement);
+        addModal.show();
+    }
+});
+@endif
 </script>
 @endsection

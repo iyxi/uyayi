@@ -175,11 +175,16 @@
 
                         <!-- Terms and Conditions -->
                         <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                            <input type="checkbox" class="form-check-input @error('terms') is-invalid @enderror" id="terms" name="terms" value="1" {{ old('terms') ? 'checked' : '' }} required>
                             <label class="form-check-label" for="terms">
                                 I agree to the <a href="#" style="color: var(--primary-blue-dark);">Terms of Service</a> 
                                 and <a href="#" style="color: var(--primary-blue-dark);">Privacy Policy</a>
                             </label>
+                            @error('terms')
+                                <div class="invalid-feedback d-block">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
 
                         <!-- Submit Button -->

@@ -70,6 +70,8 @@ class AdminController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
+            'visible' => 'nullable|boolean',
+            'images' => 'nullable|array',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
         
@@ -102,10 +104,24 @@ class AdminController extends Controller
     public function update(Request $r, Product $product)
     {
         $r->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'category_id' => 'nullable|exists:categories,id',
+            'visible' => 'nullable|boolean',
+            'images' => 'nullable|array',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
-        $data = $r->only(['name','description','price','stock','visible','category_id']);
+        $data = [
+            'name' => $r->input('name'),
+            'description' => $r->input('description'),
+            'price' => $r->input('price'),
+            'stock' => $r->input('stock'),
+            'category_id' => $r->input('category_id'),
+            'visible' => $r->has('visible') ? 1 : 0,
+        ];
         
         // Handle new image uploads
         if ($r->hasFile('images')) {
@@ -118,7 +134,11 @@ class AdminController extends Controller
         }
         
         $product->update($data);
-        return response()->json($product);
+        return response()->json([
+            'success' => true,
+            'message' => 'Product updated successfully!',
+            'product' => $product->fresh('category'),
+        ]);
     }
 
     public function destroy(Product $product)

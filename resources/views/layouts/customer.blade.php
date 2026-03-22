@@ -287,10 +287,10 @@
                                 <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu">
-                                @if(Auth::user()->email === 'admin@uyayi.com')
+                                @if(Auth::user()->isAdmin())
                                     <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Admin Dashboard</a></li>
                                 @else
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> My Account</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person"></i> My Account</a></li>
                                     <li><a class="dropdown-item" href="#"><i class="bi bi-box"></i> My Orders</a></li>
                                 @endif
                                 <li><hr class="dropdown-divider"></li>
