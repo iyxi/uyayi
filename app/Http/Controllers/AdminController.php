@@ -15,7 +15,25 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
+
 {
+    // Delete product image by path (for edit modal 'x' icon)
+    public function deleteImageByPath(Request $request, Product $product)
+    {
+        $request->validate([
+            'image' => 'required|string',
+        ]);
+        $imagePath = $request->input('image');
+        $images = $product->images ?? [];
+        $index = array_search($imagePath, $images);
+        if ($index !== false) {
+            \Storage::disk('public')->delete($imagePath);
+            array_splice($images, $index, 1);
+            $product->update(['images' => $images]);
+            return response()->json(['success' => true, 'images' => $product->fresh()->images]);
+        }
+        return response()->json(['success' => false, 'message' => 'Image not found.'], 404);
+    }
     public function dashboard()
     {
         $stats = [
@@ -653,4 +671,6 @@ class AdminController extends Controller
         $user->update(['role' => $r->role]);
         return response()->json(['success' => true, 'message' => 'User role updated successfully']);
     }
+
+    // Delete product image by path (for edit modal 'x' icon)
 }

@@ -28,7 +28,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `expenses` (
-  `id` int(11) NOT NULL,
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT, 
   `description` varchar(255) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `expense_date` date NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE `migrations` (
 --
 
 CREATE TABLE `orders` (
-  `id` int(11) NOT NULL,
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
   `user_id` int(11) DEFAULT NULL,
   `order_number` varchar(64) NOT NULL,
   `status` enum('Pending','Processing','Shipped','Completed','Cancelled') NOT NULL DEFAULT 'Pending',
@@ -71,7 +71,7 @@ CREATE TABLE `orders` (
 --
 
 CREATE TABLE `order_items` (
-  `id` int(11) NOT NULL,
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
   `order_id` int(11) NOT NULL,
   `product_id` int(11) DEFAULT NULL,
   `quantity` int(11) NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE `order_items` (
 --
 
 CREATE TABLE `payments` (
-  `id` int(11) NOT NULL,
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
   `order_id` int(11) DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
   `method` enum('GCash','Card','COD') NOT NULL,
@@ -103,7 +103,8 @@ CREATE TABLE `payments` (
 --
 
 CREATE TABLE `products` (
-  `id` int(11) NOT NULL,
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
+  `category_id` int(11) DEFAULT NULL,
   `sku` varchar(64) NOT NULL,
   `name` varchar(200) NOT NULL,
   `description` text DEFAULT NULL,
@@ -131,7 +132,7 @@ INSERT INTO `products` (`id`, `sku`, `name`, `description`, `price`, `stock`, `v
 --
 
 CREATE TABLE `product_images` (
-  `id` bigint(20) UNSIGNED NOT NULL,
+  `id` bigint(20) PRIMARY KEY AUTO_INCREMENT,
   `product_id` bigint(20) UNSIGNED NOT NULL,
   `path` varchar(255) NOT NULL,
   `filename` varchar(255) NOT NULL,
@@ -147,7 +148,7 @@ CREATE TABLE `product_images` (
 --
 
 CREATE TABLE `roles` (
-  `id` int(11) NOT NULL,
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -179,12 +180,14 @@ CREATE TABLE `role_user` (
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(150) NOT NULL,
   `email` varchar(150) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone` varchar(30) DEFAULT NULL,
   `address` text DEFAULT NULL,
+  `photo` varchar(255) DEFAULT NULL,
+  `role` varchar(20) NOT NULL DEFAULT 'customer',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -193,32 +196,42 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `address`, `created_at`, `updated_at`) VALUES
-(1, 'Admin User', 'admin@uyayi.com', '$2y$10$1YpW0FtCNOFMhw8a1v6Xl.7/fgZIMx2vqhipwwJYrksLGzHLrAMFC', NULL, NULL, '2026-02-26 16:13:03', '2026-02-26 16:13:03'),
-(2, 'Test Customer', 'customer@test.com', '$2y$10$DNOBdlGhnIjw3D24yLrdjuj4WDoepJ4Xs0T6i6P2KVFtqYpVBS8zq', NULL, NULL, '2026-02-26 16:13:03', '2026-02-26 16:13:03'),
-(3, 'John Smith', 'john@example.com', '$2y$10$.G/5Da9JNNG3aivDCNIbUunIM1uBau6vc.0lBKcURV6ApeswEm2fa', NULL, NULL, '2026-02-26 16:13:03', '2026-02-26 16:13:03');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `address`, `photo`, `role`, `created_at`, `updated_at`) VALUES
+(1, 'Admin User', 'admin@uyayi.com', '$2y$10$1YpW0FtCNOFMhw8a1v6Xl.7/fgZIMx2vqhipwwJYrksLGzHLrAMFC', NULL, NULL, NULL, 'admin', '2026-02-26 16:13:03', '2026-02-26 16:13:03'),
+(2, 'Test Customer', 'customer@test.com', '$2y$10$DNOBdlGhnIjw3D24yLrdjuj4WDoepJ4Xs0T6i6P2KVFtqYpVBS8zq', NULL, NULL, NULL, 'customer', '2026-02-26 16:13:03', '2026-02-26 16:13:03'),
+(3, 'John Smith', 'john@example.com', '$2y$10$.G/5Da9JNNG3aivDCNIbUunIM1uBau6vc.0lBKcURV6ApeswEm2fa', NULL, NULL, NULL, 'customer', '2026-02-26 16:13:03', '2026-02-26 16:13:03');
 
 --
 -- Indexes for dumped tables
 --
+-- --------------------------------------------------------
 
 --
--- Indexes for table `expenses`
+-- Table structure for table `categories`
 --
-ALTER TABLE `expenses`
-  ADD PRIMARY KEY (`id`);
+
+CREATE TABLE `categories` (
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL UNIQUE,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Indexes for table `migrations`
+-- Dumping data for table `categories`
 --
-ALTER TABLE `migrations`
-  ADD PRIMARY KEY (`id`);
+
+INSERT INTO `categories` (`id`, `name`, `created_at`, `updated_at`) VALUES
+  (1, 'Bath Essentials', 1, NOW(), NULL),
+  (2, 'Diapering Care', 1, NOW(), NULL),
+  (3, 'Skin Care', 1, NOW(), NULL),
+  (4, 'Health & Hygiene', 1, NOW(), NULL);
 
 --
 -- Indexes for table `orders`
 --
 ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `order_number` (`order_number`),
   ADD KEY `idx_orders_user` (`user_id`);
 
@@ -226,7 +239,6 @@ ALTER TABLE `orders`
 -- Indexes for table `order_items`
 --
 ALTER TABLE `order_items`
-  ADD PRIMARY KEY (`id`),
   ADD KEY `order_id` (`order_id`),
   ADD KEY `product_id` (`product_id`);
 
@@ -234,7 +246,6 @@ ALTER TABLE `order_items`
 -- Indexes for table `payments`
 --
 ALTER TABLE `payments`
-  ADD PRIMARY KEY (`id`),
   ADD KEY `order_id` (`order_id`),
   ADD KEY `idx_payments_user` (`user_id`);
 
@@ -242,21 +253,18 @@ ALTER TABLE `payments`
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `sku` (`sku`),
-  ADD KEY `idx_products_visible` (`visible`);
-
+  ADD KEY `idx_products_visible` (`visible`),
+  ADD KEY `idx_products_category` (`category_id`);
 --
--- Indexes for table `product_images`
+-- Constraints for table `products`
 --
-ALTER TABLE `product_images`
-  ADD PRIMARY KEY (`id`);
-
+ALTER TABLE `products`
+  ADD CONSTRAINT `products_ibfk_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL;
 --
 -- Indexes for table `roles`
 --
 ALTER TABLE `roles`
-  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
 
 --
@@ -270,7 +278,6 @@ ALTER TABLE `role_user`
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --

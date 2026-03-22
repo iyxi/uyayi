@@ -474,8 +474,42 @@ function editProduct(id) {
                 currentImagesContainer.innerHTML = images.map((imagePath, index) => `
                     <div class="position-relative border rounded p-1" style="width: 95px;">
                         <img src="${buildImageUrl(imagePath)}" alt="${product.name} image ${index + 1}" class="rounded" style="width: 85px; height: 85px; object-fit: cover;">
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 delete-image-btn" title="Delete image" data-image="${encodeURIComponent(imagePath)}" style="padding:0.15rem 0.4rem; border-radius:50%; line-height:1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
                 `).join('');
+                // Attach event listeners for delete buttons
+                currentImagesContainer.querySelectorAll('.delete-image-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const imagePath = decodeURIComponent(this.getAttribute('data-image'));
+                        if (confirm('Are you sure you want to delete this image?')) {
+                            deleteProductImage(id, imagePath, this.closest('.position-relative'));
+                        }
+                    });
+                });
+            }
+            // Delete product image handler
+            function deleteProductImage(productId, imagePath, imageDiv) {
+                fetch(`/admin/products/${productId}/delete-image`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ image: imagePath })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the image div from the UI
+                        if (imageDiv) imageDiv.remove();
+                    } else {
+                        alert('Failed to delete image.');
+                    }
+                })
+                .catch(() => alert('Error deleting image.'));
             }
             
             // Set form action

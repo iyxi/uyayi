@@ -640,16 +640,21 @@
             <span class="brand-name">Uyayi</span>
         </div>
 
-        <div class="sidebar-user">
-            <div class="avatar">
-                {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
-            </div>
-            <div class="user-info">
-                <div class="user-name">{{ Auth::user()->name ?? 'Admin' }}</div>
-                <div class="user-role">Administrator</div>
-            </div>
-            <i class="bi bi-chevron-right text-muted"></i>
-        </div>
+
+                <div class="sidebar-user" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#adminProfileModal">
+                        <div class="avatar">
+                                @if(Auth::user()->photo)
+                                        <img src="{{ asset('storage/' . Auth::user()->photo) }}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+                                @else
+                                        {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                                @endif
+                        </div>
+                        <div class="user-info">
+                                <div class="user-name">{{ Auth::user()->name ?? 'Admin' }}</div>
+                                <div class="user-role">Administrator</div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                </div>
 
         <nav class="sidebar-nav">
             <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -800,6 +805,59 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
+
+    <!-- Admin Profile Modal (moved outside sidebar for proper Bootstrap behavior) -->
+    <div class="modal fade" id="adminProfileModal" tabindex="-1" aria-labelledby="adminProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adminProfileModalLabel">Admin Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" autocomplete="off">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="text-center mb-3">
+                            @if(Auth::user()->photo)
+                                <img src="{{ asset('storage/' . Auth::user()->photo) }}" alt="Profile" style="width:80px;height:80px;border-radius:50%;object-fit:cover;">
+                            @else
+                                <div class="avatar" style="width:80px;height:80px;font-size:2.5rem;line-height:80px;margin:auto;background:#eee;border-radius:50%;">{{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}</div>
+                            @endif
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="name" value="{{ Auth::user()->name }}" required autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="{{ Auth::user()->email }}" required autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Profile Photo</label>
+                            <input type="file" class="form-control" name="photo" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Password <small>(required to change password)</small></label>
+                            <input type="password" class="form-control" name="current_password" autocomplete="new-password">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" name="new_password" autocomplete="new-password">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" name="new_password_confirmation" autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

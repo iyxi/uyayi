@@ -43,7 +43,49 @@ class CustomerController extends Controller
     // API endpoint for products (used by frontend)
     public function index()
     {
-        return Product::where('visible',1)->with('inventory')->paginate(12);
+        $query = Product::where('visible', 1)->with('inventory');
+
+        // Search filter
+        if (request()->has('search') && trim(request('search')) !== '') {
+            $search = trim(request('search'));
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%$search%")
+                  ->orWhere('description', 'LIKE', "%$search%");
+            });
+        }
+
+        // Category filter
+        if (request()->has('category') && request('category') !== '') {
+            $query->whereHas('category', function($q) {
+                $q->where('name', request('category'));
+            });
+        }
+
+        // Price filter (expects format: min-max or min+)
+        if (request()->has('price') && request('price') !== '') {
+            $price = request('price');
+            if (strpos($price, '-') !== false) {
+                [$min, $max] = explode('-', $price);
+                $query->whereBetween('price', [(float)$min * 10, (float)$max * 10]);
+            } elseif (strpos($price, '+') !== false) {
+                $min = (float)str_replace('+', '', $price);
+                $query->where('price', '>=', $min * 10);
+            }
+        }
+
+        // Sorting
+        $sort = request('sort', 'name');
+        if ($sort === 'price-low') {
+            $query->orderBy('price', 'asc');
+        } elseif ($sort === 'price-high') {
+            $query->orderBy('price', 'desc');
+        } elseif ($sort === 'newest') {
+            $query->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('name');
+        }
+
+        return $query->paginate(12);
     }
 
     public function cart(Request $r)

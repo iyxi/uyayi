@@ -1,10 +1,15 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChartController;
+
+// Charts page
+Route::get('/charts', [ChartController::class, 'index'])->name('charts.index');
 
 // Customer-facing ecommerce routes
 Route::get('/', [CustomerController::class, 'homepage'])->name('homepage');
@@ -56,6 +61,7 @@ Route::prefix('admin')->middleware(['admin'])->group(function(){
     Route::post('/products/{id}/restore', [AdminController::class, 'restore'])->name('admin.products.restore');
     Route::delete('/products/{id}/force', [AdminController::class, 'forceDelete'])->name('admin.products.forceDelete');
     Route::delete('/products/{product}/image/{index}', [AdminController::class, 'deleteImage'])->name('admin.products.deleteImage');
+    Route::post('/products/{product}/delete-image', [AdminController::class, 'deleteImageByPath'])->name('admin.products.deleteImageByPath');
     
     // Categories
     Route::get('/categories', [AdminController::class, 'categories'])->name('admin.categories.index');
