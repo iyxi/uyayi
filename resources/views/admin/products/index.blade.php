@@ -78,7 +78,7 @@
                                 <div class="d-flex align-items-center">
                                     <div class="product-image me-3">
                                         @if($product->images && count($product->images) > 0)
-                                            <img src="{{ asset('storage/' . $product->images[0]) }}" 
+                                            <img src="{{ asset($product->images[0]) }}" 
                                                  class="rounded" 
                                                  style="width: 50px; height: 50px; object-fit: cover;"
                                                  alt="{{ $product->name }}">
@@ -145,7 +145,7 @@
             
             <!-- Pagination -->
             <div class="card-footer bg-white">
-                {{ $products->links() }}
+                {{ $products->links('pagination::bootstrap-5') }}
             </div>
         @else
             <div class="text-center py-5">

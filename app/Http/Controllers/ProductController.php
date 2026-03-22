@@ -47,7 +47,11 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load('category');
-        return view('products.show', compact('product'));
+        // Fetch all versions (the bottle itself + the sachet/variants)
+        $options = Product::where('id', $product->id)
+                 ->orWhere('parent_id', $product->id)
+                 ->get();
+        return view('products.show', compact('product', 'options'));
     }
 
     public function edit(Product $product)

@@ -9,7 +9,18 @@ class Product extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['sku','name','description','price','stock','visible','images','category_id'];
+    protected $fillable = ['sku','name','description','price','stock','visible','images','category_id','parent_id'];
+    // Variants: all products that have this product as their parent
+    public function variants()
+    {
+        return $this->hasMany(Product::class, 'parent_id');
+    }
+
+    // Parent: the main product this is a variant of
+    public function parent()
+    {
+        return $this->belongsTo(Product::class, 'parent_id');
+    }
 
     protected $casts = [
         'images' => 'array',

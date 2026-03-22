@@ -13,7 +13,8 @@ class CustomerController extends Controller
     // Homepage view
     public function homepage()
     {
-        return view('homepage');
+        $products = Product::where('visible', 1)->orderBy('created_at', 'desc')->take(16)->get();
+        return view('homepage', compact('products'));
     }
 
     // Shop page view

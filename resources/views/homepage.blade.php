@@ -50,7 +50,27 @@
         </div>
         
         <div class="row" id="featured-products">
-            <!-- Products will be loaded here dynamically -->
+            @forelse($products as $product)
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        @if(!empty($product->images) && is_array($product->images) && count($product->images) > 0)
+                            <img src="{{ asset('storage/' . $product->images[0]) }}" class="card-img-top" alt="{{ $product->name }}" style="height: 220px; object-fit: cover;">
+                        @else
+                            <img src="{{ asset('img/no-image.png') }}" class="card-img-top" alt="No image" style="height: 220px; object-fit: cover;">
+                        @endif
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2">{{ $product->name }}</h5>
+                            <p class="card-text text-muted small flex-grow-1">{{ Str::limit($product->description, 60) }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="fw-bold text-success">₱{{ number_format($product->price, 2) }}</span>
+                                <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary btn-sm">View</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12 text-center text-muted">No featured products available.</div>
+            @endforelse
         </div>
         
         <div class="text-center mt-4">
