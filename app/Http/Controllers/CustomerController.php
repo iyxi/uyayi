@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Mail\TransactionCompletedMail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -210,62 +211,93 @@ class CustomerController extends Controller
         $shippingMethod = $r->input('shipping_method', 'standard');
         $promoCode = strtoupper(trim((string) $r->input('promo_code', '')));
         $promoConfig = $this->availablePromoCodes()[$promoCode] ?? null;
-
-        $order = Order::create([
-            'user_id'=>$user->id,
-            'order_number'=>uniqid('ORD-'),
-            'status'=>'completed',
-            'shipping_address'=>$r->input('shipping_address')
-        ]);
+        $order = null;
+        $payment = null;
         $total = 0;
-        foreach($normalizedLines as $line){
-            $p = Product::find($line['product_id']);
-            if (!$p) {
-                continue;
+        $shippingCost = 0;
+        $tax = 0;
+        $discount = 0;
+        $grandTotal = 0;
+
+        DB::beginTransaction();
+
+        try {
+            $order = Order::create([
+                'user_id' => $user->id,
+                'order_number' => uniqid('ORD-'),
+                'status' => 'completed',
+                'shipping_address' => $r->input('shipping_address')
+            ]);
+
+            foreach ($normalizedLines as $line) {
+                $p = Product::find($line['product_id']);
+                if (!$p) {
+                    continue;
+                }
+
+                $qty = max(1, (int) $line['quantity']);
+                $subtotal = $p->price * $qty;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $p->id,
+                    'quantity' => $qty,
+                    'unit_price' => $p->price,
+                    'subtotal' => $subtotal
+                ]);
+
+                $total += $subtotal;
+
+                // Decrease stock within the same transaction so it rolls back if checkout fails.
+                $p->stock = max(0, (int) $p->stock - $qty);
+                $p->save();
             }
 
-            $qty = max(1, (int) $line['quantity']);
-            $subtotal = $p->price * $qty;
-            OrderItem::create(['order_id'=>$order->id,'product_id'=>$p->id,'quantity'=>$qty,'unit_price'=>$p->price,'subtotal'=>$subtotal]);
-            $total += $subtotal;
-            // decrease product stock directly
-            $p->stock = max(0, (int)$p->stock - $qty);
-            $p->save();
-        }
+            if ($total <= 0) {
+                DB::rollBack();
+                return response()->json(['message' => 'No valid items found in cart'], 400);
+            }
 
-        if ($total <= 0) {
-            $order->delete();
-            return response()->json(['message' => 'No valid items found in cart'], 400);
-        }
-
-        $shippingCost = match ($shippingMethod) {
-            'express' => 300,
-            'overnight' => 500,
-            default => $total >= 1000 ? 0 : 50,
-        };
-
-        $tax = round($total * 0.08, 2);
-        $discount = 0;
-
-        if ($promoConfig) {
-            $discount = match ($promoConfig['type']) {
-                'fixed' => min((float) $promoConfig['value'], $total + $shippingCost + $tax),
-                'percent' => round(($total + $shippingCost + $tax) * ((float) $promoConfig['value'] / 100), 2),
-                default => 0,
+            $shippingCost = match ($shippingMethod) {
+                'express' => 300,
+                'overnight' => 500,
+                default => $total >= 1000 ? 0 : 50,
             };
+
+            $tax = round($total * 0.08, 2);
+
+            if ($promoConfig) {
+                $discount = match ($promoConfig['type']) {
+                    'fixed' => min((float) $promoConfig['value'], $total + $shippingCost + $tax),
+                    'percent' => round(($total + $shippingCost + $tax) * ((float) $promoConfig['value'] / 100), 2),
+                    default => 0,
+                };
+            }
+
+            $grandTotal = max(0, round($total + $shippingCost + $tax - $discount, 2));
+
+            $paymentMethod = 'COD';
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'user_id' => $user->id,
+                'method' => $paymentMethod,
+                'amount' => $grandTotal,
+                'status' => 'Paid'
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Checkout transaction failed.', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Unable to complete the transaction right now. Please try again.'
+            ], 500);
         }
-
-        $grandTotal = max(0, round($total + $shippingCost + $tax - $discount, 2));
-
-        $paymentMethod = 'COD';
-        // create payment record
-        $payment = Payment::create([
-            'order_id'=>$order->id,
-            'user_id'=>$user->id,
-            'method'=>$paymentMethod,
-            'amount'=>$grandTotal,
-            'status'=> 'Paid'
-        ]);
 
         $orderId = $order->id;
         $userEmail = $user->email;
