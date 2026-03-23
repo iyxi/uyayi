@@ -13,6 +13,9 @@ use App\Models\User;
 
 // Charts page
 Route::get('/charts', [ChartController::class, 'index'])->name('charts.index');
+Route::get('/charts/data/yearly-sales', [ChartController::class, 'yearlySales'])->name('charts.data.yearly');
+Route::get('/charts/data/sales-range', [ChartController::class, 'salesByDateRange'])->name('charts.data.range');
+Route::get('/charts/data/product-share', [ChartController::class, 'productSalesShare'])->name('charts.data.product-share');
 
 // Customer-facing ecommerce routes
 Route::get('/', [CustomerController::class, 'homepage'])->name('homepage');
