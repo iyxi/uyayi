@@ -13,11 +13,19 @@ class AddProfileFieldsToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('photo')->nullable()->after('address');
-            $table->enum('status', ['active', 'inactive'])->default('active')->after('photo');
-            $table->enum('role', ['customer', 'admin'])->default('customer')->after('status');
-        });
+        if (!Schema::hasColumn('users', 'photo') || !Schema::hasColumn('users', 'status') || !Schema::hasColumn('users', 'role')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'photo')) {
+                    $table->string('photo')->nullable()->after('address');
+                }
+                if (!Schema::hasColumn('users', 'status')) {
+                    $table->enum('status', ['active', 'inactive'])->default('active')->after('photo');
+                }
+                if (!Schema::hasColumn('users', 'role')) {
+                    $table->enum('role', ['customer', 'admin'])->default('customer')->after('status');
+                }
+            });
+        }
     }
 
     /**

@@ -6,19 +6,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->timestamps();
-        });
-
-        // Seed initial categories
-        DB::table('categories')->insert([
-            ['name' => 'Bath Essentials'],
-            ['name' => 'Diapering Care'],
-            ['name' => 'Skin Care'],
-            ['name' => 'Health & Hygiene'],
-        ]);
+        if (!Schema::hasTable('categories')) {
+            Schema::create('categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('name', 100)->unique();
+                $table->text('description')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

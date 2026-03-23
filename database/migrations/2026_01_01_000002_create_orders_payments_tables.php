@@ -14,7 +14,6 @@ class CreateOrdersPaymentsTables extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('order_number')->unique();
             $table->enum('status',['pending','processing','shipped','completed','cancelled'])->default('pending');
-            $table->decimal('total_amount',10,2)->default(0);
             $table->text('shipping_address')->nullable();
             $table->timestamps();
         });

@@ -417,9 +417,55 @@
     <script>
         const canUseCart = @json(auth()->check() && !auth()->user()->isAdmin());
         const cartStorageKey = canUseCart ? `cart_user_${@json(auth()->id())}` : null;
-        let cart = canUseCart ? JSON.parse(localStorage.getItem(cartStorageKey) || '{}') : {};
+
+        function normalizeCartEntries(cartData) {
+            if (!cartData || typeof cartData !== 'object') {
+                return {};
+            }
+
+            return Object.entries(cartData).reduce((normalized, [key, value]) => {
+                const rawItem = value && typeof value === 'object' ? value : {};
+                const rawProduct = rawItem.product && typeof rawItem.product === 'object'
+                    ? rawItem.product
+                    : rawItem;
+                const productId = Number(rawProduct.id || key || 0);
+
+                if (!productId) {
+                    return normalized;
+                }
+
+                normalized[productId] = {
+                    product: normalizeCartProduct(rawProduct, productId),
+                    quantity: Math.max(1, Number(rawItem.quantity || 1))
+                };
+
+                return normalized;
+            }, {});
+        }
+
+        let cart = canUseCart ? normalizeCartEntries(JSON.parse(localStorage.getItem(cartStorageKey) || '{}')) : {};
+        window.cartStorageKey = cartStorageKey;
+        window.cart = cart;
+
+        function syncCartFromStorage() {
+            if (!canUseCart || !cartStorageKey) {
+                cart = {};
+                window.cart = cart;
+                return cart;
+            }
+
+            cart = normalizeCartEntries(JSON.parse(localStorage.getItem(cartStorageKey) || '{}'));
+            window.cart = cart;
+            return cart;
+        }
+
+        window.syncCartFromStorage = syncCartFromStorage;
+        if (canUseCart && cartStorageKey) {
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+        }
         
         function updateCartCount() {
+            syncCartFromStorage();
             const cartCountElement = document.querySelector('.cart-count');
             if (!cartCountElement) {
                 return;
@@ -467,7 +513,7 @@
             };
         }
 
-        async function addToCart(productId, product = null, quantity = 1) {
+        async function addToCart(productId, product = null, quantity = 1, redirectToCart = true) {
             if (!canUseCart) {
                 showToast('Please log in as a customer to use the cart.', 'warning');
                 return false;
@@ -504,10 +550,17 @@
                 quantity: cart[numericProductId].quantity
             };
             localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+            window.cart = cart;
             updateCartCount();
             
             // Show success message
             showToast(`${parsedQuantity} item${parsedQuantity === 1 ? '' : 's'} added to cart!`, 'success');
+
+            if (redirectToCart) {
+                window.location.href = @json(route('cart.view'));
+                return true;
+            }
+
             return true;
         }
         
@@ -518,6 +571,7 @@
 
             delete cart[productId];
             localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+            window.cart = cart;
             updateCartCount();
         }
         

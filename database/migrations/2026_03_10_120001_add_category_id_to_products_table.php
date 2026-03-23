@@ -13,9 +13,11 @@ class AddCategoryIdToProductsTable extends Migration
      */
     public function up()
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->foreignId('category_id')->nullable()->constrained('categories')->cascadeOnDelete();
-        });
+        if (!Schema::hasColumn('products', 'category_id')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
+            });
+        }
     }
 
     /**

@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     showToast('Unable to add this product right now.', 'warning');
                     return;
                 }
-                addToCart(productId, payload, 1);
+                addToCart(productId, payload, 1, true);
             } catch (error) {
                 console.error('Homepage add-to-cart error:', error);
                 showToast('Unable to add this product right now.', 'warning');

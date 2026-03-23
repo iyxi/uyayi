@@ -47,7 +47,7 @@ class AdminController extends Controller
             'products' => Product::count(),
             'orders' => Order::count(),
             'users' => User::count(),
-            'recent_orders' => Order::latest()->take(5)->with('user')->get(),
+            'recent_orders' => Order::latest()->take(5)->with(['user', 'payment', 'items'])->get(),
             'low_stock' => Product::where('stock', '<', 10)->take(5)->get(),
             'recent_transactions' => Payment::with(['user', 'order'])->latest()->take(10)->get(),
         ];
@@ -58,7 +58,9 @@ class AdminController extends Controller
     // Product CRUD
     public function index()
     {
-        $products = Product::with('category')->paginate(20);
+        $products = Product::with('category')
+            ->latest()
+            ->paginate(20);
         $categories = Category::active()->orderBy('name')->get();
         $trashedCount = Product::onlyTrashed()->count();
         return view('admin.products.index', compact('products', 'categories', 'trashedCount'));
@@ -66,7 +68,10 @@ class AdminController extends Controller
 
     public function trashed()
     {
-        $products = Product::onlyTrashed()->with('category')->paginate(20);
+        $products = Product::onlyTrashed()
+            ->with('category')
+            ->latest('deleted_at')
+            ->paginate(20);
         return view('admin.products.trashed', compact('products'));
     }
 
@@ -506,6 +511,10 @@ class AdminController extends Controller
     public function customers()
     {
         $customers = User::withCount('orders')
+            ->where(function ($query) {
+                $query->whereNull('role')
+                    ->orWhere('role', 'customer');
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
@@ -577,7 +586,7 @@ class AdminController extends Controller
     // Orders
     public function orders()
     {
-        $orders = Order::with(['user', 'items.product'])->orderBy('created_at','desc')->paginate(30);
+        $orders = Order::with(['user', 'items.product', 'payment'])->orderBy('created_at','desc')->paginate(30);
         return view('admin.orders.index', compact('orders'));
     }
 
@@ -680,10 +689,12 @@ class AdminController extends Controller
     // Reports
     public function reports()
     {
-        $salesByMonth = Order::selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, SUM(total) as total, COUNT(*) as count')
-            ->where('status', '!=', 'Cancelled')
-            ->groupByRaw('YEAR(created_at), MONTH(created_at)')
-            ->orderByRaw('YEAR(created_at) DESC, MONTH(created_at) DESC')
+        $salesByMonth = Order::query()
+            ->leftJoin('payments', 'payments.order_id', '=', 'orders.id')
+            ->selectRaw('MONTH(orders.created_at) as month, YEAR(orders.created_at) as year, SUM(COALESCE(payments.amount, 0)) as total, COUNT(DISTINCT orders.id) as count')
+            ->whereRaw("LOWER(COALESCE(orders.status, '')) != ?", ['cancelled'])
+            ->groupByRaw('YEAR(orders.created_at), MONTH(orders.created_at)')
+            ->orderByRaw('YEAR(orders.created_at) DESC, MONTH(orders.created_at) DESC')
             ->take(12)
             ->get();
         
@@ -693,7 +704,10 @@ class AdminController extends Controller
             ->get();
         
         $stats = [
-            'total_sales' => Order::where('status', '!=', 'Cancelled')->sum('total'),
+            'total_sales' => Payment::query()
+                ->join('orders', 'orders.id', '=', 'payments.order_id')
+                ->whereRaw("LOWER(COALESCE(orders.status, '')) != ?", ['cancelled'])
+                ->sum('payments.amount'),
             'total_orders' => Order::count(),
             'total_customers' => User::count(),
             'total_products' => Product::count()

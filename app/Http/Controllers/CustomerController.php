@@ -215,7 +215,6 @@ class CustomerController extends Controller
             'user_id'=>$user->id,
             'order_number'=>uniqid('ORD-'),
             'status'=>'completed',
-            'total'=>0,
             'shipping_address'=>$r->input('shipping_address')
         ]);
         $total = 0;
@@ -258,9 +257,6 @@ class CustomerController extends Controller
 
         $grandTotal = max(0, round($total + $shippingCost + $tax - $discount, 2));
 
-        $order->total = $grandTotal;
-        $order->save();
-
         $paymentMethod = 'COD';
         // create payment record
         $payment = Payment::create([
@@ -271,22 +267,33 @@ class CustomerController extends Controller
             'status'=> 'Paid'
         ]);
 
-        try {
-            $orderForMail = $order->fresh()->load(['user', 'items.product', 'payment']);
-            Mail::to($user->email)->send(new TransactionCompletedMail($orderForMail));
-        } catch (\Throwable $e) {
-            Log::error('Failed sending transaction completion email.', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $orderId = $order->id;
+        $userEmail = $user->email;
+
+        dispatch(function () use ($orderId, $userEmail) {
+            try {
+                $orderForMail = Order::query()
+                    ->with(['user', 'items.product', 'payment'])
+                    ->find($orderId);
+
+                if (!$orderForMail) {
+                    return;
+                }
+
+                Mail::to($userEmail)->send(new TransactionCompletedMail($orderForMail));
+            } catch (\Throwable $e) {
+                Log::error('Failed sending transaction completion email.', [
+                    'order_id' => $orderId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        })->afterResponse();
 
         session()->forget('cart');
 
         return response()->json([
             'order' => $order->load('items', 'payment'),
             'payment' => $payment,
-            'processed_items' => $normalizedLines,
             'summary' => [
                 'subtotal' => round($total, 2),
                 'shipping' => round($shippingCost, 2),

@@ -46,7 +46,7 @@
 
                                         return ((float) ($item->unit_price ?? 0)) * ((int) ($item->quantity ?? 0));
                                     });
-                                    $paidAmount = (float) ($order->payment->amount ?? $order->total ?? 0);
+                                    $paidAmount = (float) ($order->payment->amount ?? $order->computed_total ?? 0);
                                     $shippingAmount = 0.0;
                                     $taxAmount = max(0, $paidAmount - $itemsSubtotal - $shippingAmount);
                                     $detailsId = 'order-details-' . $order->id;

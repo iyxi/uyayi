@@ -61,9 +61,36 @@ class Product extends Model
 
     public function getPrimaryImageUrlAttribute()
     {
+        $path = null;
+
         if ($this->images && count($this->images) > 0) {
-            return asset('storage/' . $this->images[0]);
+            $path = $this->images[0];
+        } elseif (!empty($this->image)) {
+            $path = $this->image;
         }
-        return null;
+
+        if (!$path) {
+            return null;
+        }
+
+        $raw = ltrim((string) $path, '/');
+
+        if (preg_match('/^https?:\/\//i', $raw)) {
+            return $raw;
+        }
+
+        if (str_starts_with($raw, 'storage/') || str_starts_with($raw, 'img/')) {
+            return asset($raw);
+        }
+
+        if (str_starts_with($raw, 'public/')) {
+            return asset('storage/' . substr($raw, 7));
+        }
+
+        if (str_contains($raw, '/')) {
+            return asset('storage/' . $raw);
+        }
+
+        return asset('img/' . $raw);
     }
 }

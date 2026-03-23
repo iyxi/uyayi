@@ -540,9 +540,12 @@ async function addToCartWithDetails(productId) {
     }
 
     const quantity = parseInt(document.getElementById('quantity').value);
-    addToCart(productId, product, quantity);
+    const added = await addToCart(productId, product, quantity, true);
     
-    // Show success message with details
+    if (!added) {
+        return;
+    }
+    return;
     showToast(`Added ${quantity} × ${product.name} to cart!`, 'success');
 }
 

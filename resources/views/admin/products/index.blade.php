@@ -78,7 +78,7 @@
                                 <div class="d-flex align-items-center">
                                     <div class="product-image me-3">
                                         @if($product->images && count($product->images) > 0)
-                                            <img src="{{ asset($product->images[0]) }}" 
+                                            <img src="{{ $product->primary_image_url }}" 
                                                  class="rounded" 
                                                  style="width: 50px; height: 50px; object-fit: cover;"
                                                  alt="{{ $product->name }}">

@@ -529,8 +529,6 @@ function placeOrder() {
     })
     .then(data => {
         showToast('Order placed successfully! 🎉', 'success');
-        clearProcessedCartItems(data.processed_items || []);
-        updateCartCount();
 
         const redirectUrl = data.redirect_url || '{{ route("orders.index") }}';
         const orderId = data.order?.id || '';
@@ -546,27 +544,6 @@ function placeOrder() {
             placeOrderBtn.disabled = false;
         }
     });
-}
-
-function clearProcessedCartItems(processedItems) {
-    if (!Array.isArray(processedItems) || processedItems.length === 0) {
-        cart = {};
-    } else {
-        processedItems.forEach(item => {
-            const productId = Number(item.product_id || 0);
-            if (productId && cart[productId]) {
-                delete cart[productId];
-            }
-        });
-    }
-
-    if (typeof cartStorageKey === 'string' && cartStorageKey.length > 0) {
-        if (Object.keys(cart).length === 0) {
-            localStorage.removeItem(cartStorageKey);
-        } else {
-            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
-        }
-    }
 }
 
 function validateForm() {

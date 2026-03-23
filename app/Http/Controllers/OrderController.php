@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -27,7 +28,10 @@ class OrderController extends Controller
             'status' => 'required|in:Pending,Processing,Shipped,Completed,Cancelled'
         ]);
 
-        $order->update(['status' => $request->status]);
+        DB::transaction(function () use ($order, $request) {
+            $order->update(['status' => $request->status]);
+            // Add any related updates here (e.g., stock, payment, logs)
+        });
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Order status updated successfully!');

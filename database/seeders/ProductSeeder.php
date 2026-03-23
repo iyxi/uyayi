@@ -21,25 +21,35 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($productGroups as $group) {
-            $parentId = DB::table('products')->insertGetId([
+            DB::table('products')->updateOrInsert([
+                'sku' => $group[1],
+            ], [
                 'category_id' => $group[0],
                 'sku'         => $group[1],
                 'name'        => $group[2],
                 'description' => "Premium gentle formula " . $group[2] . " for daily baby care.",
                 'price'       => $group[3],
+                'stock'       => 100,
+                'visible'     => 1,
                 'image'       => $group[4],
                 'images'      => json_encode([$group[4]]),
                 'created_at'  => $now,
                 'updated_at'  => $now,
             ]);
 
-            DB::table('products')->insert([
+            $parentId = DB::table('products')->where('sku', $group[1])->value('id');
+
+            DB::table('products')->updateOrInsert([
+                'sku' => $group[5],
+            ], [
                 'category_id' => 5, 
                 'parent_id'   => $parentId,
                 'sku'         => $group[5],
                 'name'        => str_replace(['(500ml)', '(200ml)', '(100ml)', '(100g)'], '', $group[2]) . " (Sachet)",
                 'description' => "Travel-friendly 3ml sachet. Perfect for testing on sensitive skin.",
                 'price'       => 130.00, 
+                'stock'       => 200,
+                'visible'     => 1,
                 'image'       => $group[6],
                 'images'      => json_encode([$group[6]]),
                 'created_at'  => $now,
@@ -64,19 +74,24 @@ class ProductSeeder extends Seeder
         foreach ($diaperSizes as $s) {
             $baseId = null;
             foreach ($diaperQuantities as $index => $q) {
-                $id = DB::table('products')->insertGetId([
+                DB::table('products')->updateOrInsert([
+                    'sku' => "UY-DP-{$s['size']}-{$q['pcs']}",
+                ], [
                     'category_id' => 4,
                     'parent_id'   => ($index == 0) ? null : $baseId,
                     'sku'         => "UY-DP-{$s['size']}-{$q['pcs']}",
                     'name'        => "Ultra-Soft Diapers - {$s['size']} ({$q['pcs']} pcs)",
                     'description' => "Size {$s['size']} hypoallergenic diapers. Breathable and leak-proof.",
                     'price'       => $q['price'],
+                    'stock'       => 150,
+                    'visible'     => 1,
                     'image'       => $s['img'],
                     'images'      => json_encode([$s['img']]),
                     'created_at'  => $now,
                     'updated_at'  => $now,
                 ]);
-                if ($index == 0) $baseId = $id; 
+                $id = DB::table('products')->where('sku', "UY-DP-{$s['size']}-{$q['pcs']}")->value('id');
+                if ($index == 0) $baseId = $id;
             }
         }
 
@@ -94,12 +109,16 @@ class ProductSeeder extends Seeder
             [3, 'UY-FS-SPF', 'Face Sunscreen SPF30', 620.00, 'img/Face_Sunscreen.jpg'],
         ];
         foreach ($standalone as $s) {
-            DB::table('products')->insert([
+            DB::table('products')->updateOrInsert([
+                'sku' => $s[1],
+            ], [
                 'category_id' => $s[0],
                 'sku'         => $s[1],
                 'name'        => $s[2],
                 'description' => "High-quality " . $s[2] . " for delicate skin.",
                 'price'       => $s[3],
+                'stock'       => 120,
+                'visible'     => 1,
                 'image'       => $s[4],
                 'images'      => json_encode([$s[4]]),
                 'created_at'  => $now,

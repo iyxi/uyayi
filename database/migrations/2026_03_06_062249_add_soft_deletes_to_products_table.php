@@ -11,10 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->softDeletes();
-            $table->json('images')->nullable()->after('visible');
-        });
+        if (!Schema::hasColumn('products', 'deleted_at') || !Schema::hasColumn('products', 'images')) {
+            Schema::table('products', function (Blueprint $table) {
+                if (!Schema::hasColumn('products', 'deleted_at')) {
+                    $table->softDeletes();
+                }
+
+                if (!Schema::hasColumn('products', 'images')) {
+                    $table->json('images')->nullable()->after('visible');
+                }
+            });
+        }
     }
 
     /**
@@ -23,8 +30,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropSoftDeletes();
-            $table->dropColumn('images');
+            if (Schema::hasColumn('products', 'deleted_at')) {
+                $table->dropSoftDeletes();
+            }
+
+            if (Schema::hasColumn('products', 'images')) {
+                $table->dropColumn('images');
+            }
         });
     }
 };

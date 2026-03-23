@@ -81,8 +81,7 @@
                             <td>
                                 <strong>
                                     ₱{{ number_format(
-                                        $order->total_amount ??
-                                        $order->items->sum(fn($item) => ($item->unit_price ?? 0) * ($item->quantity ?? 1)),
+                                        $order->computed_total,
                                         2)
                                     }}
                                 </strong>

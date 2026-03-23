@@ -13,7 +13,6 @@
     <h1 class="page-title mb-0">Payments</h1>
 </div>
 
-<!-- Stats Cards -->
 <div class="row g-4 mb-4">
     <div class="col-md-4">
         <div class="card border-0 shadow-sm h-100">
@@ -62,7 +61,6 @@
     </div>
 </div>
 
-<!-- Payments Table -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white">
         <h5 class="mb-0">All Payments ({{ $payments->total() }})</h5>
@@ -84,23 +82,27 @@
                     <tbody>
                         @foreach($payments as $payment)
                         <tr>
-                            <td>{{ $payment->created_at->format('M d, Y') }}</td>
+                            <td>
+                                {{ optional($payment->order?->created_at ?? $payment->created_at)->format('M d, Y') ?? 'N/A' }}
+                            </td>
                             <td>
                                 @if($payment->order)
-                                    <a href="#">#{{ $payment->order_id }}</a>
+                                    <span>{{ $payment->order->id }}</span>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
                             <td>
-                                @if($payment->user)
+                                @if($payment->order?->user)
+                                    {{ $payment->order->user->name }}
+                                @elseif($payment->user)
                                     {{ $payment->user->name }}
                                 @else
                                     <span class="text-muted">Guest</span>
                                 @endif
                             </td>
                             <td><strong>₱{{ number_format($payment->amount, 2) }}</strong></td>
-                            <td>{{ $payment->payment_method ?? 'N/A' }}</td>
+                            <td>{{ $payment->method ?? 'N/A' }}</td>
                             <td>
                                 @if($payment->status == 'Paid')
                                     <span class="badge bg-success">Paid</span>
@@ -115,8 +117,7 @@
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
+
             <div class="card-footer bg-white">
                 {{ $payments->links() }}
             </div>

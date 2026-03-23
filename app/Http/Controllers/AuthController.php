@@ -32,10 +32,8 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if ($user && !$user->isAdmin() && Hash::check($credentials['password'], $user->password) && !$user->hasVerifiedEmail()) {
-            $user->sendEmailVerificationNotification();
-
             return back()->withErrors([
-                'email' => 'Your email is not verified. We sent a new verification link to your inbox.',
+                'email' => 'Your email is not verified. Please check the verification email sent during registration, or use the resend option below.',
             ])->onlyInput('email');
         }
 
@@ -94,8 +92,9 @@ class AuthController extends Controller
         ]);
 
         event(new Registered($user));
+        $user->sendEmailVerificationNotification();
 
-        return redirect()->route('login')->with('success', 'Registration successful! Please verify your email before logging in.');
+        return redirect()->route('login')->with('success', 'Registration successful! A verification email has been sent to your inbox.');
     }
 
     /**

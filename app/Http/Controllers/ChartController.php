@@ -19,10 +19,11 @@ class ChartController extends Controller
     public function yearlySales()
     {
         $rows = DB::table('orders')
-            ->selectRaw('YEAR(created_at) as year, SUM(COALESCE(total, 0)) as total_sales')
-            ->whereRaw("LOWER(COALESCE(status, '')) != ?", ['cancelled'])
-            ->groupByRaw('YEAR(created_at)')
-            ->orderByRaw('YEAR(created_at) ASC')
+            ->leftJoin('payments', 'payments.order_id', '=', 'orders.id')
+            ->selectRaw('YEAR(orders.created_at) as year, SUM(COALESCE(payments.amount, 0)) as total_sales')
+            ->whereRaw("LOWER(COALESCE(orders.status, '')) != ?", ['cancelled'])
+            ->groupByRaw('YEAR(orders.created_at)')
+            ->orderByRaw('YEAR(orders.created_at) ASC')
             ->get();
 
         return response()->json([
@@ -36,11 +37,12 @@ class ChartController extends Controller
         [$startDate, $endDate] = $this->resolveDateRange($request);
 
         $salesRows = DB::table('orders')
-            ->selectRaw('DATE(created_at) as sale_date, SUM(COALESCE(total, 0)) as total_sales')
-            ->whereRaw("LOWER(COALESCE(status, '')) != ?", ['cancelled'])
-            ->whereDate('created_at', '>=', $startDate->toDateString())
-            ->whereDate('created_at', '<=', $endDate->toDateString())
-            ->groupByRaw('DATE(created_at)')
+            ->leftJoin('payments', 'payments.order_id', '=', 'orders.id')
+            ->selectRaw('DATE(orders.created_at) as sale_date, SUM(COALESCE(payments.amount, 0)) as total_sales')
+            ->whereRaw("LOWER(COALESCE(orders.status, '')) != ?", ['cancelled'])
+            ->whereDate('orders.created_at', '>=', $startDate->toDateString())
+            ->whereDate('orders.created_at', '<=', $endDate->toDateString())
+            ->groupByRaw('DATE(orders.created_at)')
             ->orderBy('sale_date')
             ->get()
             ->keyBy('sale_date');

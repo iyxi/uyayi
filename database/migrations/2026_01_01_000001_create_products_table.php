@@ -10,12 +10,17 @@ class CreateProductsTable extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('sku')->unique();
-            $table->string('name');
+            $table->foreignId('parent_id')->nullable()->constrained('products')->cascadeOnDelete();
+            $table->string('sku', 64)->unique();
+            $table->string('name', 200);
             $table->text('description')->nullable();
-            $table->decimal('price',10,2);
+            $table->decimal('price', 10, 2)->default(0);
+            $table->integer('stock')->default(0);
             $table->boolean('visible')->default(true);
+            $table->string('image')->nullable();
+            $table->json('images')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('inventory', function (Blueprint $table) {

@@ -14,9 +14,6 @@ class CategoriesSeeder extends Seeder
      */
     public function run()
     {
-        // Clear existing categories first
-        Category::query()->delete();
-        
         $categories = [
             [
                 'name' => 'Bath Essentials',
@@ -38,10 +35,23 @@ class CategoriesSeeder extends Seeder
                 'description' => 'Health and hygiene products for babies',
                 'is_active' => true,
             ],
+            [
+                'name' => 'Sachet Variants',
+                'description' => 'Travel-friendly sachet versions of core products',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Household Essentials',
+                'description' => 'Household and baby care support essentials',
+                'is_active' => true,
+            ],
         ];
 
         foreach ($categories as $category) {
-            Category::create($category);
+            Category::updateOrCreate(
+                ['name' => $category['name']],
+                $category
+            );
         }
     }
 }
