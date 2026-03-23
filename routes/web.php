@@ -71,7 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function(){
 });
 
 // Admin routes
-Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(function(){
+Route::prefix('admin')->middleware(['auth', 'admin'])->group(function(){
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     
     // Products

@@ -31,7 +31,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if ($user && Hash::check($credentials['password'], $user->password) && !$user->hasVerifiedEmail()) {
+        if ($user && !$user->isAdmin() && Hash::check($credentials['password'], $user->password) && !$user->hasVerifiedEmail()) {
             $user->sendEmailVerificationNotification();
 
             return back()->withErrors([

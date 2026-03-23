@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\XLSX\Writer as XlsxWriter;
 
 class AdminController extends Controller
 
@@ -345,20 +347,43 @@ class AdminController extends Controller
             ['Baby Lotion', 'SKU-LOTION-001', 'Moisturizing lotion for infants', '145.00', '30', 'yes', 'Skin Care'],
         ];
 
-        $handle = fopen('php://temp', 'w+');
-        fputcsv($handle, $headers);
-        foreach ($sampleRows as $row) {
-            fputcsv($handle, $row);
+        $tempPath = tempnam(sys_get_temp_dir(), 'products-import-template-');
+
+        if ($tempPath === false) {
+            return redirect()->route('admin.products.index')->withErrors([
+                'file' => 'Unable to generate import template file.',
+            ]);
         }
 
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+        try {
+            $writer = new XlsxWriter();
+            $writer->openToFile($tempPath);
+            $writer->addRow(Row::fromValues($headers));
 
-        return response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="products-import-template.csv"',
-        ]);
+            foreach ($sampleRows as $row) {
+                $writer->addRow(Row::fromValues($row));
+            }
+
+            $writer->close();
+        } catch (\Throwable $e) {
+            if (is_file($tempPath)) {
+                @unlink($tempPath);
+            }
+
+            Log::error('Failed generating XLSX import template.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('admin.products.index')->withErrors([
+                'file' => 'Unable to generate XLSX template right now. Please try again.',
+            ]);
+        }
+
+        return response()->download(
+            $tempPath,
+            'products-import-template.xlsx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        )->deleteFileAfterSend(true);
     }
 
     private function normalizeImportHeader($header): string
