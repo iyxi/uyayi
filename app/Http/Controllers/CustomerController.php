@@ -7,6 +7,9 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Mail\TransactionCompletedMail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class CustomerController extends Controller
 {
@@ -211,6 +214,17 @@ class CustomerController extends Controller
             'amount'=>$total,
             'status'=> 'Paid'
         ]);
+
+        try {
+            $orderForMail = $order->fresh()->load(['user', 'items.product', 'payment']);
+            Mail::to($user->email)->send(new TransactionCompletedMail($orderForMail));
+        } catch (\Throwable $e) {
+            Log::error('Failed sending transaction completion email.', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         session()->forget('cart');
 
         return response()->json([

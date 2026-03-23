@@ -13,6 +13,14 @@
                         <p class="text-muted">Sign in to your Uyayi account</p>
                     </div>
 
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle"></i>
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                     @if ($errors->any())
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle"></i>
@@ -95,6 +103,26 @@
                             </p>
                         </div>
                     </form>
+
+                    <hr class="my-4">
+
+                    <div>
+                        <p class="small text-muted mb-2">Didn't get your verification email?</p>
+                        <form method="POST" action="{{ route('verification.resend.login') }}" class="d-flex gap-2">
+                            @csrf
+                            <input
+                                type="email"
+                                name="email"
+                                class="form-control form-control-sm"
+                                placeholder="Enter your email"
+                                value="{{ old('email') }}"
+                                required
+                            >
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                Resend
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
 

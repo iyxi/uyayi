@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -29,6 +30,15 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $credentials['email'])->first();
+
+        if ($user && Hash::check($credentials['password'], $user->password) && !$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+
+            return back()->withErrors([
+                'email' => 'Your email is not verified. We sent a new verification link to your inbox.',
+            ])->onlyInput('email');
+        }
+
         if ($user && !$user->isActive()) {
             return back()->withErrors([
                 'email' => 'Your account is inactive. Please contact the administrator.',
@@ -83,9 +93,27 @@ class AuthController extends Controller
             'role' => 'customer',
         ]);
 
-        Auth::login($user);
+        event(new Registered($user));
 
-        return redirect()->route('homepage')->with('success', 'Registration successful! Welcome to Uyayi.');
+        return redirect()->route('login')->with('success', 'Registration successful! Please verify your email before logging in.');
+    }
+
+    /**
+     * Resend verification email from login page for guest users.
+     */
+    public function resendVerificationFromLogin(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::where('email', $validated['email'])->first();
+
+        if ($user && !$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        return back()->with('success', 'If your account exists and is not yet verified, a verification email has been sent.');
     }
 
     /**

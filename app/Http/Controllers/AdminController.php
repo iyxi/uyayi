@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Mail\OrderStatusUpdatedMail;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\User;
@@ -13,6 +14,8 @@ use App\Models\Review;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;  
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -555,8 +558,25 @@ class AdminController extends Controller
 
     public function updateOrderStatus(Request $r, Order $order)
     {
-        $order->status = $r->input('status');
+        $validated = $r->validate([
+            'status' => ['required', 'in:pending,processing,shipped,completed,cancelled'],
+        ]);
+
+        $order->status = $validated['status'];
         $order->save();
+
+        try {
+            $orderForMail = $order->fresh()->load(['user', 'items.product', 'payment']);
+            if ($orderForMail->user && $orderForMail->user->email) {
+                Mail::to($orderForMail->user->email)->send(new OrderStatusUpdatedMail($orderForMail));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed sending order status update email.', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return response()->json($order);
     }
 

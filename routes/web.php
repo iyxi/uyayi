@@ -3,6 +3,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
@@ -34,8 +35,28 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+
+    return redirect()->route('homepage')->with('success', 'Your email has been verified successfully.');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+
+    return back()->with('status', 'verification-link-sent');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+Route::post('/email/verification-notification/login', [AuthController::class, 'resendVerificationFromLogin'])
+    ->middleware(['guest', 'throttle:6,1'])
+    ->name('verification.resend.login');
+
 // Customer routes
-Route::middleware(['auth'])->group(function(){
+Route::middleware(['auth', 'verified'])->group(function(){
     Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
     Route::post('/cart/add/{product}', [CustomerController::class, 'addToCart'])->name('cart.add');
     Route::post('/checkout', [CustomerController::class, 'checkout'])->name('checkout');
@@ -50,7 +71,7 @@ Route::middleware(['auth'])->group(function(){
 });
 
 // Admin routes
-Route::prefix('admin')->middleware(['admin'])->group(function(){
+Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(function(){
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     
     // Products
