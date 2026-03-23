@@ -33,6 +33,7 @@
             font-family: 'Open Sans', sans-serif;
             color: var(--text-dark);
             background-color: var(--soft-cream);
+            padding-top: 94px;
         }
 
         .navbar-brand {
@@ -133,6 +134,19 @@
                 var(--soft-tan) 50%,
                 var(--primary-blue) 100%
             );
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1045;
+        }
+
+        .navbar-fixed-top {
+            position: fixed;
+            top: 4px;
+            left: 0;
+            width: 100%;
+            z-index: 1040;
         }
 
         .eco-badge {
@@ -240,7 +254,7 @@
     <div class="decorative-border"></div>
 
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-custom navbar-fixed-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('homepage') }}">
                 <img src="{{ asset('img/logo.png') }}" alt="Uyayi Logo" style="height: 70px; margin-right: 6px;">
@@ -263,25 +277,29 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#collections">
+                        <a class="nav-link {{ request()->routeIs('collections') ? 'active' : '' }}" href="{{ route('collections') }}">
                             Collections
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#about">
+                        <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">
                             About
                         </a>
                     </li>
                 </ul>
                 
                 <ul class="navbar-nav">
-                    <li class="nav-item me-3">
-                        <a class="nav-link position-relative d-flex align-items-center gap-2" href="{{ route('cart.view') }}">
-                            <i class="bi bi-bag"></i>
-                            <span class="d-none d-md-inline">Cart</span>
-                            <span class="cart-count cart-badge">0</span>
-                        </a>
-                    </li>
+                    @auth
+                        @if(!Auth::user()->isAdmin())
+                            <li class="nav-item me-3">
+                                <a class="nav-link position-relative d-flex align-items-center gap-2" href="{{ route('cart.view') }}">
+                                    <i class="bi bi-bag"></i>
+                                    <span class="d-none d-md-inline">Cart</span>
+                                    <span class="cart-count cart-badge">0</span>
+                                </a>
+                            </li>
+                        @endif
+                    @endauth
                     @auth
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
@@ -397,29 +415,109 @@
     
     <!-- Cart Management Script -->
     <script>
-        // Global cart management
-        let cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        const canUseCart = @json(auth()->check() && !auth()->user()->isAdmin());
+        const cartStorageKey = canUseCart ? `cart_user_${@json(auth()->id())}` : null;
+        let cart = canUseCart ? JSON.parse(localStorage.getItem(cartStorageKey) || '{}') : {};
         
         function updateCartCount() {
-            const count = Object.keys(cart).length;
-            document.querySelector('.cart-count').textContent = count;
+            const cartCountElement = document.querySelector('.cart-count');
+            if (!cartCountElement) {
+                return;
+            }
+
+            const count = Object.values(cart).reduce((total, item) => {
+                return total + Math.max(1, Number(item.quantity || 0));
+            }, 0);
+            cartCountElement.textContent = count;
         }
 
-        function addToCart(productId, product, quantity = 1) {
-            cart[productId] = {
-                product: product,
-                quantity: parseInt(quantity)
+        async function fetchProductForCart(productId) {
+            try {
+                const response = await fetch(`/api/products/${productId}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unable to load product details');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Cart product fetch failed:', error);
+                return null;
+            }
+        }
+
+        function normalizeCartProduct(product, productId) {
+            const images = Array.isArray(product?.images)
+                ? product.images
+                : (typeof product?.images === 'string' ? [product.images] : []);
+
+            return {
+                id: Number(product?.id || productId || 0),
+                name: product?.name || 'Product',
+                price: Number(product?.price || 0),
+                sku: product?.sku || '',
+                stock: Number(product?.stock || 0),
+                size: product?.size || null,
+                description: product?.description || '',
+                images: images.filter(Boolean)
             };
-            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        async function addToCart(productId, product = null, quantity = 1) {
+            if (!canUseCart) {
+                showToast('Please log in as a customer to use the cart.', 'warning');
+                return false;
+            }
+
+            const numericProductId = Number(productId || 0);
+            if (!numericProductId) {
+                showToast('Unable to add this product right now.', 'warning');
+                return false;
+            }
+
+            const resolvedProduct = product || await fetchProductForCart(numericProductId);
+            if (!resolvedProduct) {
+                showToast('Unable to add this product right now.', 'warning');
+                return false;
+            }
+
+            const cartProduct = normalizeCartProduct(resolvedProduct, numericProductId);
+
+            const parsedQuantity = Math.max(1, parseInt(quantity, 10) || 1);
+
+            if (cart[numericProductId]) {
+                cart[numericProductId].quantity = Math.max(1, Number(cart[numericProductId].quantity || 0)) + parsedQuantity;
+                cart[numericProductId].product = cartProduct;
+            } else {
+                cart[numericProductId] = {
+                    product: cartProduct,
+                    quantity: parsedQuantity
+                };
+            }
+
+            cart[numericProductId] = {
+                product: cart[numericProductId].product,
+                quantity: cart[numericProductId].quantity
+            };
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
             updateCartCount();
             
             // Show success message
-            showToast('Product added to cart!', 'success');
+            showToast(`${parsedQuantity} item${parsedQuantity === 1 ? '' : 's'} added to cart!`, 'success');
+            return true;
         }
         
         function removeFromCart(productId) {
+            if (!canUseCart) {
+                return;
+            }
+
             delete cart[productId];
-            localStorage.setItem('cart', JSON.stringify(cart));
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
             updateCartCount();
         }
         

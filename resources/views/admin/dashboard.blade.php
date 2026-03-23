@@ -2,70 +2,9 @@
 
 @section('title', 'Dashboard - Uyayi Admin')
 
-@section('breadcrumb')
-<span class="current">Dashboard</span>
-<!-- Sales Charts -->
-<div class="row mb-4">
-    <div class="col-lg-8 mb-4">
-        <div class="data-card">
-            <div class="data-card-header">
-                <h5 class="mb-0 fw-semibold"><i class="bi bi-bar-chart-line me-2"></i>Sales by Month</h5>
-            </div>
-            <div class="p-3">
-                <canvas id="salesByMonthChart" height="120"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 mb-4">
-        <div class="data-card">
-            <div class="data-card-header">
-                <h5 class="mb-0 fw-semibold"><i class="bi bi-pie-chart me-2"></i>Top Products</h5>
-            </div>
-            <div class="p-3">
-                <canvas id="topProductsChart" height="120"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
 
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Example data, replace with real data from backend
-const salesByMonthData = @json($stats['sales_by_month'] ?? ['labels'=>[], 'data'=>[]]);
-const topProductsData = @json($stats['top_products'] ?? ['labels'=>[], 'data'=>[]]);
 
-const salesByMonthChart = new Chart(document.getElementById('salesByMonthChart'), {
-    type: 'line',
-    data: {
-        labels: salesByMonthData.labels,
-        datasets: [{
-            label: 'Sales',
-            data: salesByMonthData.data,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16,185,129,0.1)',
-            fill: true
-        }]
-    },
-    options: { responsive: true }
-});
 
-const topProductsChart = new Chart(document.getElementById('topProductsChart'), {
-    type: 'pie',
-    data: {
-        labels: topProductsData.labels,
-        datasets: [{
-            label: 'Top Products',
-            data: topProductsData.data,
-            backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#6366f1', '#f472b6']
-        }]
-    },
-    options: { responsive: true }
-});
-</script>
-@endpush
-
-@endsection
 
 @section('content')
 <h1 class="page-title">Dashboard</h1>

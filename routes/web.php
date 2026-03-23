@@ -20,6 +20,8 @@ Route::get('/charts/data/product-share', [ChartController::class, 'productSalesS
 // Customer-facing ecommerce routes
 Route::get('/', [CustomerController::class, 'homepage'])->name('homepage');
 Route::get('/shop', [CustomerController::class, 'shop'])->name('shop');
+Route::get('/collections', [CustomerController::class, 'collections'])->name('collections');
+Route::get('/about', [CustomerController::class, 'about'])->name('about');
 Route::get('/product/{product}', [CustomerController::class, 'product'])->name('product.show');
 Route::get('/cart-view', [CustomerController::class, 'cartView'])->name('cart.view');
 Route::get('/checkout-page', [CustomerController::class, 'checkoutPage'])->name('checkout.page');

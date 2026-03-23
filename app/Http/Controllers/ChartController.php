@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class ChartController extends Controller
     public function yearlySales()
     {
         $rows = DB::table('orders')
-            ->selectRaw('YEAR(created_at) as year, SUM(COALESCE(total, total_amount, 0)) as total_sales')
+            ->selectRaw('YEAR(created_at) as year, SUM(COALESCE(total, 0)) as total_sales')
             ->whereRaw("LOWER(COALESCE(status, '')) != ?", ['cancelled'])
             ->groupByRaw('YEAR(created_at)')
             ->orderByRaw('YEAR(created_at) ASC')
@@ -35,7 +36,7 @@ class ChartController extends Controller
         [$startDate, $endDate] = $this->resolveDateRange($request);
 
         $salesRows = DB::table('orders')
-            ->selectRaw('DATE(created_at) as sale_date, SUM(COALESCE(total, total_amount, 0)) as total_sales')
+            ->selectRaw('DATE(created_at) as sale_date, SUM(COALESCE(total, 0)) as total_sales')
             ->whereRaw("LOWER(COALESCE(status, '')) != ?", ['cancelled'])
             ->whereDate('created_at', '>=', $startDate->toDateString())
             ->whereDate('created_at', '<=', $endDate->toDateString())
@@ -65,26 +66,36 @@ class ChartController extends Controller
     {
         [$startDate, $endDate] = $this->resolveDateRange($request);
 
-        $rows = DB::table('order_items')
+        $unitsByProduct = DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->leftJoin('products', 'products.id', '=', 'order_items.product_id')
-            ->selectRaw('COALESCE(products.name, ? ) as product_name, SUM(order_items.subtotal) as total_sales', ['Deleted Product'])
             ->whereRaw("LOWER(COALESCE(orders.status, '')) != ?", ['cancelled'])
             ->whereDate('orders.created_at', '>=', $startDate->toDateString())
             ->whereDate('orders.created_at', '<=', $endDate->toDateString())
-            ->groupBy('product_name')
-            ->orderByDesc('total_sales')
+            ->selectRaw('order_items.product_id, SUM(order_items.quantity) as units_sold')
+            ->groupBy('order_items.product_id')
             ->get();
 
-        $grandTotal = (float) $rows->sum('total_sales');
+        $unitsMap = $unitsByProduct->pluck('units_sold', 'product_id');
 
-        $percentages = $rows->map(function ($row) use ($grandTotal) {
-            $value = (float) $row->total_sales;
-            $percentage = $grandTotal > 0 ? round(($value / $grandTotal) * 100, 2) : 0;
+        $rows = Product::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(function ($product) use ($unitsMap) {
+                return [
+                    'label' => (string) $product->name,
+                    'units' => (int) ($unitsMap[$product->id] ?? 0),
+                ];
+            });
+
+        $grandTotalUnits = (int) $rows->sum('units');
+
+        $percentages = $rows->map(function ($row) use ($grandTotalUnits) {
+            $value = (int) $row['units'];
+            $percentage = $grandTotalUnits > 0 ? round(($value / $grandTotalUnits) * 100, 2) : 0;
 
             return [
-                'label' => (string) $row->product_name,
-                'amount' => round($value, 2),
+                'label' => (string) $row['label'],
+                'units' => $value,
                 'percentage' => $percentage,
             ];
         });
@@ -92,7 +103,7 @@ class ChartController extends Controller
         return response()->json([
             'labels' => $percentages->pluck('label')->values(),
             'values' => $percentages->pluck('percentage')->values(),
-            'amounts' => $percentages->pluck('amount')->values(),
+            'units' => $percentages->pluck('units')->values(),
             'start_date' => $startDate->toDateString(),
             'end_date' => $endDate->toDateString(),
         ]);

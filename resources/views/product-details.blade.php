@@ -63,6 +63,7 @@
 <script>
 const IS_AUTHENTICATED = @json(auth()->check());
 const CSRF_TOKEN = @json(csrf_token());
+let currentProductDetails = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const productId = window.location.pathname.split('/').pop();
@@ -137,7 +138,21 @@ function formatPeso(value) {
     return `₱${amount.toFixed(2)}`;
 }
 
+function renderCatalogRating(product) {
+    const average = Number(product.reviews_avg_rating || 0);
+    const count = Number(product.reviews_count || 0);
+    const rounded = Math.round(average);
+    let stars = '';
+
+    for (let i = 1; i <= 5; i += 1) {
+        stars += i <= rounded ? '★' : '☆';
+    }
+
+    return `${stars} <span class="ms-1 small">${average.toFixed(2)} (${count})</span>`;
+}
+
 function displayProduct(product) {
+    currentProductDetails = product;
     document.getElementById('product-breadcrumb').textContent = product.name;
     document.title = `${product.name} - Uyayi`;
     const imageUrls = getProductImages(product);
@@ -218,30 +233,6 @@ function displayProduct(product) {
                     </ul>
                 </div>
                 
-                <!-- Size Selection -->
-                <div class="size-selection mb-4">
-                    <h6 class="fw-bold mb-2">Size:</h6>
-                    <div class="btn-group" role="group" aria-label="Size selection">
-                        <input type="radio" class="btn-check" name="size" id="size-xs" value="XS">
-                        <label class="btn btn-outline-secondary" for="size-xs">XS</label>
-                        
-                        <input type="radio" class="btn-check" name="size" id="size-s" value="S" checked>
-                        <label class="btn btn-outline-secondary" for="size-s">S</label>
-                        
-                        <input type="radio" class="btn-check" name="size" id="size-m" value="M">
-                        <label class="btn btn-outline-secondary" for="size-m">M</label>
-                        
-                        <input type="radio" class="btn-check" name="size" id="size-l" value="L">
-                        <label class="btn btn-outline-secondary" for="size-l">L</label>
-                        
-                        <input type="radio" class="btn-check" name="size" id="size-xl" value="XL">
-                        <label class="btn btn-outline-secondary" for="size-xl">XL</label>
-                    </div>
-                    <small class="text-muted d-block mt-1">
-                        <a href="#" class="text-decoration-none">Size Guide</a>
-                    </small>
-                </div>
-                
                 <!-- Quantity and Add to Cart -->
                 <div class="quantity-cart mb-4">
                     <div class="row g-3">
@@ -255,24 +246,8 @@ function displayProduct(product) {
                         </div>
                         <div class="col-8">
                             <label class="form-label fw-bold d-block">&nbsp;</label>
-                            <button class="btn btn-primary-custom w-100 btn-lg" onclick="addToCartWithDetails(${product.id}, ${JSON.stringify(product)})" ${Number(product.stock || 0) === 0 ? 'disabled' : ''}>
+                            <button class="btn btn-primary-custom w-100 btn-lg" onclick="addToCartWithDetails(${product.id})" ${Number(product.stock || 0) === 0 ? 'disabled' : ''}>
                                 <i class="bi bi-bag-plus me-2"></i>Add to Cart
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Additional Actions -->
-                <div class="product-actions mb-4">
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <button class="btn btn-outline-secondary w-100" onclick="toggleWishlist(${product.id})">
-                                <i class="bi bi-heart me-2"></i>Add to Wishlist
-                            </button>
-                        </div>
-                        <div class="col-6">
-                            <button class="btn btn-outline-secondary w-100" onclick="shareProduct()">
-                                <i class="bi bi-share me-2"></i>Share
                             </button>
                         </div>
                     </div>
@@ -347,6 +322,15 @@ function loadProductReviews(productId) {
             const summaryEl = document.getElementById('review-summary');
             if (summaryEl) {
                 summaryEl.innerHTML = `${renderStars(Math.round(averageRating))} <span class="ms-1">${averageRating.toFixed(2)} / 5 (${count} review${count === 1 ? '' : 's'})</span>`;
+            }
+
+            const headerStarsEl = document.querySelector('.product-rating .stars');
+            const headerCountEl = document.querySelector('.product-rating .text-muted');
+            if (headerStarsEl) {
+                headerStarsEl.innerHTML = renderStars(Math.round(averageRating));
+            }
+            if (headerCountEl) {
+                headerCountEl.textContent = `${averageRating.toFixed(2)} • ${count} review${count === 1 ? '' : 's'}`;
             }
 
             renderReviewForm(productId, payload);
@@ -476,23 +460,46 @@ function loadRelatedProducts() {
         .then(response => response.json())
         .then(data => {
             const products = data.data ? data.data.slice(0, 4) : [];
-            const relatedHTML = products.map(product => `
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="product-card h-100 shadow-sm">
-                        <img src="${getProductImages(product)[0]}" 
-                             class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold">${product.name}</h6>
-                            <p class="text-muted mb-2">${formatPeso(product.price)}</p>
-                            <a href="/product/${product.id}" class="btn btn-outline-success btn-sm w-100">View Details</a>
+            const relatedHTML = products.map(product => {
+                const stock = Number(product.stock || 0);
+                const badgeLabel = stock <= 0 ? 'Out of Stock' : (stock <= 5 ? 'Sale!' : 'New!');
+                const badgeClass = stock <= 0 ? 'shop-catalog-badge shop-catalog-badge--out' : (stock <= 5 ? 'shop-catalog-badge shop-catalog-badge--sale' : 'shop-catalog-badge');
+
+                return `
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                        <div class="shop-catalog-card">
+                            <div class="shop-catalog-card__media">
+                                <span class="${badgeClass}">${badgeLabel}</span>
+                                <img src="${getProductImages(product)[0]}"
+                                     class="shop-catalog-card__image" alt="${product.name}" onerror="this.onerror=null;this.src='/img/logo.png';">
+                            </div>
+                            <div class="shop-catalog-card__body">
+                                <h6 class="shop-catalog-card__title">${product.name}</h6>
+                                <div class="shop-catalog-card__price">${formatPeso(product.price)}</div>
+                                <div class="shop-catalog-card__stars">${renderCatalogRating(product)}</div>
+                                <div class="shop-catalog-card__meta">${stock > 0 ? `In stock (${stock})` : 'Currently unavailable'}</div>
+                                <div class="shop-catalog-card__actions">
+                                    <button class="shop-catalog-icon-btn" onclick="viewProduct(${product.id})" aria-label="View ${product.name}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="shop-catalog-icon-btn shop-catalog-icon-btn--primary" onclick="addToCart(${product.id})" aria-label="Add ${product.name} to cart" ${stock <= 0 ? 'disabled' : ''}>
+                                        <i class="bi bi-bag-plus"></i>
+                                    </button>
+                                </div>
+                                <p class="small text-muted mt-3 mb-0">${product.description || 'Carefully selected baby essentials from your catalog.'}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             document.getElementById('related-products').innerHTML = relatedHTML;
         })
         .catch(error => console.error('Error loading related products:', error));
+}
+
+function viewProduct(productId) {
+    window.location.href = `/product/${productId}`;
 }
 
 function changeMainImage(src, selectedThumb) {
@@ -525,20 +532,18 @@ function decreaseQuantity() {
     }
 }
 
-function addToCartWithDetails(productId, product) {
+async function addToCartWithDetails(productId) {
+    const product = currentProductDetails;
+    if (!product || Number(product.id) !== Number(productId)) {
+        showToast('Unable to add this product right now.', 'warning');
+        return;
+    }
+
     const quantity = parseInt(document.getElementById('quantity').value);
-    const selectedSize = document.querySelector('input[name="size"]:checked')?.value || 'S';
-    
-    // Add size to product info
-    const productWithSize = {
-        ...product,
-        size: selectedSize
-    };
-    
-    addToCart(productId, productWithSize, quantity);
+    addToCart(productId, product, quantity);
     
     // Show success message with details
-    showToast(`Added ${quantity} × ${product.name} (Size: ${selectedSize}) to cart!`, 'success');
+    showToast(`Added ${quantity} × ${product.name} to cart!`, 'success');
 }
 
 function toggleWishlist(productId) {
@@ -585,8 +590,140 @@ document.addEventListener('click', function(e) {
     opacity: 1;
 }
 
-.product-card:hover {
-    transform: translateY(-2px);
+#related-products {
+    justify-content: center;
+}
+
+#related-products .shop-catalog-card {
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(95, 74, 45, 0.08);
+    overflow: hidden;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#related-products .shop-catalog-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(95, 74, 45, 0.14);
+}
+
+#related-products .shop-catalog-card__media {
+    position: relative;
+    background: linear-gradient(180deg, #faf7f2 0%, #f3eee8 100%);
+    border-radius: 26px;
+    margin: 0.85rem;
+    min-height: 220px;
+    overflow: hidden;
+}
+
+#related-products .shop-catalog-card__image {
+    width: 100%;
+    height: 220px;
+    object-fit: contain;
+    padding: 1rem;
+}
+
+#related-products .shop-catalog-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #7dc8f7;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+#related-products .shop-catalog-badge--sale {
+    background: #a7d64b;
+}
+
+#related-products .shop-catalog-badge--out {
+    background: #c7c7c7;
+}
+
+#related-products .shop-catalog-card__body {
+    padding: 0.25rem 1.25rem 1.35rem;
+    text-align: center;
+}
+
+#related-products .shop-catalog-card__title {
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #453624;
+    min-height: 2.6em;
+    margin-bottom: 0.45rem;
+}
+
+#related-products .shop-catalog-card__price {
+    font-size: 1.4rem;
+    line-height: 1;
+    font-weight: 900;
+    color: var(--primary-blue-dark);
+    margin-bottom: 0.45rem;
+}
+
+#related-products .shop-catalog-card__stars {
+    color: var(--accent-brown);
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.9rem;
+}
+
+#related-products .shop-catalog-card__meta {
+    font-size: 0.78rem;
+    color: #8f816f;
+    margin-bottom: 0.9rem;
+}
+
+#related-products .shop-catalog-card__actions {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    justify-content: center;
+}
+
+#related-products .shop-catalog-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #f0d7bc;
+    background: #fff;
+    color: #7b6241;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+#related-products .shop-catalog-icon-btn:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue-dark);
+}
+
+#related-products .shop-catalog-icon-btn--primary {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue);
+    color: #fff;
+}
+
+#related-products .shop-catalog-icon-btn--primary:hover {
+    background: var(--primary-blue-dark);
+    border-color: var(--primary-blue-dark);
+    color: #fff;
 }
 
 .btn-check:checked + .btn-outline-secondary {

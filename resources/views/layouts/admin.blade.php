@@ -774,9 +774,8 @@
             </div>
 
             <div class="header-actions">
-                <button class="header-btn-icon">
+                <button class="header-btn-icon" style="opacity:0.5; pointer-events:none; cursor:not-allowed;" title="Notifications (Not implemented)">
                     <i class="bi bi-bell"></i>
-                    <span class="notification-dot"></span>
                 </button>
                 <button class="header-btn-icon">
                     <i class="bi bi-question-circle"></i>

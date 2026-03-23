@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -22,12 +23,16 @@ class CustomerController extends Controller
         if ($search !== '') {
             $products = Product::search($search)
                 ->query(function ($query) {
-                    $query->orderBy('created_at', 'desc');
+                    $query->withCount('reviews')
+                        ->withAvg('reviews', 'rating')
+                        ->orderBy('created_at', 'desc');
                 })
                 ->paginate($perPage)
                 ->appends($request->query());
         } else {
             $products = Product::query()
+                ->withCount('reviews')
+                ->withAvg('reviews', 'rating')
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage)
                 ->appends($request->query());
@@ -39,7 +44,30 @@ class CustomerController extends Controller
     // Shop page view
     public function shop()
     {
-        return view('shop');
+        $categories = Category::active()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('shop', compact('categories'));
+    }
+
+    public function collections()
+    {
+        $categories = Category::active()
+            ->with(['products' => function ($query) {
+                $query->withCount('reviews')
+                    ->withAvg('reviews', 'rating')
+                    ->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
+
+        return view('collections', compact('categories'));
+    }
+
+    public function about()
+    {
+        return view('about');
     }
 
     // Product details page
@@ -73,7 +101,9 @@ class CustomerController extends Controller
     // API endpoint for products (used by frontend)
     public function index()
     {
-        $query = Product::query();
+        $query = Product::query()
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating');
 
         // Search filter
         if (request()->filled('search')) {
@@ -86,9 +116,7 @@ class CustomerController extends Controller
 
         // Category filter
         if (request()->filled('category')) {
-            $query->whereHas('category', function($q) {
-                $q->where('name', request('category'));
-            });
+            $query->where('category_id', (int) request('category'));
         }
 
         // Price filter (expects format: min-max or min+)
@@ -120,7 +148,12 @@ class CustomerController extends Controller
 
     public function showProductApi(Product $product)
     {
-        return response()->json($product);
+        return response()->json(
+            Product::query()
+                ->withCount('reviews')
+                ->withAvg('reviews', 'rating')
+                ->findOrFail($product->id)
+        );
     }
 
     public function cart(Request $r)
@@ -174,6 +207,10 @@ class CustomerController extends Controller
             return response()->json(['message' => 'Cart empty'], 400);
         }
 
+        $shippingMethod = $r->input('shipping_method', 'standard');
+        $promoCode = strtoupper(trim((string) $r->input('promo_code', '')));
+        $promoConfig = $this->availablePromoCodes()[$promoCode] ?? null;
+
         $order = Order::create([
             'user_id'=>$user->id,
             'order_number'=>uniqid('ORD-'),
@@ -202,7 +239,26 @@ class CustomerController extends Controller
             return response()->json(['message' => 'No valid items found in cart'], 400);
         }
 
-        $order->total = $total;
+        $shippingCost = match ($shippingMethod) {
+            'express' => 300,
+            'overnight' => 500,
+            default => $total >= 1000 ? 0 : 50,
+        };
+
+        $tax = round($total * 0.08, 2);
+        $discount = 0;
+
+        if ($promoConfig) {
+            $discount = match ($promoConfig['type']) {
+                'fixed' => min((float) $promoConfig['value'], $total + $shippingCost + $tax),
+                'percent' => round(($total + $shippingCost + $tax) * ((float) $promoConfig['value'] / 100), 2),
+                default => 0,
+            };
+        }
+
+        $grandTotal = max(0, round($total + $shippingCost + $tax - $discount, 2));
+
+        $order->total = $grandTotal;
         $order->save();
 
         $paymentMethod = 'COD';
@@ -211,7 +267,7 @@ class CustomerController extends Controller
             'order_id'=>$order->id,
             'user_id'=>$user->id,
             'method'=>$paymentMethod,
-            'amount'=>$total,
+            'amount'=>$grandTotal,
             'status'=> 'Paid'
         ]);
 
@@ -230,6 +286,15 @@ class CustomerController extends Controller
         return response()->json([
             'order' => $order->load('items', 'payment'),
             'payment' => $payment,
+            'processed_items' => $normalizedLines,
+            'summary' => [
+                'subtotal' => round($total, 2),
+                'shipping' => round($shippingCost, 2),
+                'tax' => round($tax, 2),
+                'discount' => round($discount, 2),
+                'promo_code' => $promoCode ?: null,
+                'total' => $grandTotal,
+            ],
             'redirect_url' => route('orders.index'),
         ]);
     }
@@ -241,5 +306,26 @@ class CustomerController extends Controller
         }
 
         return $order->load('items','payment');
+    }
+
+    private function availablePromoCodes(): array
+    {
+        return [
+            'UYAYI5' => [
+                'label' => '5% off your order',
+                'type' => 'percent',
+                'value' => 5,
+            ],
+            'BABY10' => [
+                'label' => '10% off your order',
+                'type' => 'percent',
+                'value' => 10,
+            ],
+            'WELCOME50' => [
+                'label' => '₱50 off your order',
+                'type' => 'fixed',
+                'value' => 50,
+            ],
+        ];
     }
 }

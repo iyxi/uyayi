@@ -97,7 +97,19 @@ CREATE TABLE `payments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
+--
+-- Table structure for table `categories`
+--
 
+CREATE TABLE `categories` (
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL UNIQUE,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 --
 -- Table structure for table `products`
 --
@@ -105,6 +117,7 @@ CREATE TABLE `payments` (
 CREATE TABLE `products` (
   `id` int(11) PRIMARY KEY AUTO_INCREMENT,
   `category_id` int(11) DEFAULT NULL,
+  `parent_id` int(11) DEFAULT NULL,
   `sku` varchar(64) NOT NULL,
   `name` varchar(200) NOT NULL,
   `description` text DEFAULT NULL,
@@ -122,8 +135,45 @@ CREATE TABLE `products` (
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `sku`, `name`, `description`, `price`, `stock`, `visible`, `image`, `created_at`, `updated_at`, `deleted_at`, `images`) VALUES
-(1, 'SKUVQRLAWJF', 'Baby Bath', 'Mabango si Meriel', 300.00, 3, 1, NULL, '2026-03-02 16:43:14', '2026-03-05 22:20:46', NULL, NULL);
+INSERT INTO `products` (`id`, `category_id`, `parent_id`, `sku`, `name`, `description`, `price`, `stock`, `visible`, `image`, `created_at`, `updated_at`, `deleted_at`, `images`) VALUES
+(1, 1, NULL, 'UY-BW-BTL', 'Baby Wash (500ml)', 'Premium gentle formula Baby Wash (500ml) for daily baby care.', 980.00, 100, 1, 'img/baby_wash.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/baby_wash.jpg')),
+(2, 1, NULL, 'UY-HL-TBE', 'Hydrating Lotion (200ml)', 'Premium gentle formula Hydrating Lotion (200ml) for daily baby care.', 650.00, 100, 1, 'img/Lotion_Hydrating.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Lotion_Hydrating.jpg')),
+(3, 1, NULL, 'UY-BC-JAR', 'Baby Bum Cream (100g)', 'Premium gentle formula Baby Bum Cream (100g) for daily baby care.', 520.00, 100, 1, 'img/Face_Cream.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Face_Cream.jpg')),
+(4, 3, NULL, 'UY-SN-BTL', 'Body Sunscreen SPF50', 'Premium gentle formula Body Sunscreen SPF50 for daily baby care.', 890.00, 100, 1, 'img/Body_Sunscreen.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Body_Sunscreen.jpg')),
+(5, 2, NULL, 'UY-MO-BTL', 'Massage Oil (100ml)', 'Premium gentle formula Massage Oil (100ml) for daily baby care.', 480.00, 100, 1, 'img/Liquid_Soap.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Liquid_Soap.jpg')),
+(6, 5, 1, 'UY-S-WASH', 'Baby Wash  (Sachet)', 'Travel-friendly 3ml sachet. Perfect for testing on sensitive skin.', 130.00, 200, 1, 'img/Sachet_Wash.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Sachet_Wash.jpg')),
+(7, 5, 2, 'UY-S-LOTN', 'Hydrating Lotion  (Sachet)', 'Travel-friendly 3ml sachet. Perfect for testing on sensitive skin.', 130.00, 200, 1, 'img/Sachet_Lotion.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Sachet_Lotion.jpg')),
+(8, 5, 3, 'UY-S-BUM', 'Baby Bum Cream  (Sachet)', 'Travel-friendly 3ml sachet. Perfect for testing on sensitive skin.', 130.00, 200, 1, 'img/Sachet_BumCream.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Sachet_BumCream.jpg')),
+(9, 5, 4, 'UY-S-SUN', 'Body Sunscreen SPF50 (Sachet)', 'Travel-friendly 3ml sachet. Perfect for testing on sensitive skin.', 130.00, 200, 1, 'img/Sachet_Sunscreen.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Sachet_Sunscreen.jpg')),
+(10, 5, 5, 'UY-S-OIL', 'Massage Oil  (Sachet)', 'Travel-friendly 3ml sachet. Perfect for testing on sensitive skin.', 130.00, 200, 1, 'img/Sachet_MassageOil.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Sachet_MassageOil.jpg')),
+(11, 4, NULL, 'UY-DP-XS-12', 'Ultra-Soft Diapers - XS (12 pcs)', 'Size XS hypoallergenic diapers. Breathable and leak-proof.', 350.00, 150, 1, 'img/XS_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XS_Diaper.jpg')),
+(12, 4, 11, 'UY-DP-XS-24', 'Ultra-Soft Diapers - XS (24 pcs)', 'Size XS hypoallergenic diapers. Breathable and leak-proof.', 670.00, 150, 1, 'img/XS_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XS_Diaper.jpg')),
+(13, 4, 11, 'UY-DP-XS-36', 'Ultra-Soft Diapers - XS (36 pcs)', 'Size XS hypoallergenic diapers. Breathable and leak-proof.', 990.00, 150, 1, 'img/XS_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XS_Diaper.jpg')),
+(14, 4, NULL, 'UY-DP-S-12', 'Ultra-Soft Diapers - S (12 pcs)', 'Size S hypoallergenic diapers. Breathable and leak-proof.', 350.00, 150, 1, 'img/Small_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Small_Diaper.jpg')),
+(15, 4, 14, 'UY-DP-S-24', 'Ultra-Soft Diapers - S (24 pcs)', 'Size S hypoallergenic diapers. Breathable and leak-proof.', 670.00, 150, 1, 'img/Small_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Small_Diaper.jpg')),
+(16, 4, 14, 'UY-DP-S-36', 'Ultra-Soft Diapers - S (36 pcs)', 'Size S hypoallergenic diapers. Breathable and leak-proof.', 990.00, 150, 1, 'img/Small_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Small_Diaper.jpg')),
+(17, 4, NULL, 'UY-DP-M-12', 'Ultra-Soft Diapers - M (12 pcs)', 'Size M hypoallergenic diapers. Breathable and leak-proof.', 350.00, 150, 1, 'img/Medium_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Medium_Diaper.jpg')),
+(18, 4, 17, 'UY-DP-M-24', 'Ultra-Soft Diapers - M (24 pcs)', 'Size M hypoallergenic diapers. Breathable and leak-proof.', 670.00, 150, 1, 'img/Medium_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Medium_Diaper.jpg')),
+(19, 4, 17, 'UY-DP-M-36', 'Ultra-Soft Diapers - M (36 pcs)', 'Size M hypoallergenic diapers. Breathable and leak-proof.', 990.00, 150, 1, 'img/Medium_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Medium_Diaper.jpg')),
+(20, 4, NULL, 'UY-DP-L-12', 'Ultra-Soft Diapers - L (12 pcs)', 'Size L hypoallergenic diapers. Breathable and leak-proof.', 350.00, 150, 1, 'img/Large_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Large_Diaper.jpg')),
+(21, 4, 20, 'UY-DP-L-24', 'Ultra-Soft Diapers - L (24 pcs)', 'Size L hypoallergenic diapers. Breathable and leak-proof.', 670.00, 150, 1, 'img/Large_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Large_Diaper.jpg')),
+(22, 4, 20, 'UY-DP-L-36', 'Ultra-Soft Diapers - L (36 pcs)', 'Size L hypoallergenic diapers. Breathable and leak-proof.', 990.00, 150, 1, 'img/Large_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Large_Diaper.jpg')),
+(23, 4, NULL, 'UY-DP-XL-12', 'Ultra-Soft Diapers - XL (12 pcs)', 'Size XL hypoallergenic diapers. Breathable and leak-proof.', 350.00, 150, 1, 'img/XL_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XL_Diaper.jpg')),
+(24, 4, 23, 'UY-DP-XL-24', 'Ultra-Soft Diapers - XL (24 pcs)', 'Size XL hypoallergenic diapers. Breathable and leak-proof.', 670.00, 150, 1, 'img/XL_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XL_Diaper.jpg')),
+(25, 4, 23, 'UY-DP-XL-36', 'Ultra-Soft Diapers - XL (36 pcs)', 'Size XL hypoallergenic diapers. Breathable and leak-proof.', 990.00, 150, 1, 'img/XL_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XL_Diaper.jpg')),
+(26, 4, NULL, 'UY-DP-XXL-12', 'Ultra-Soft Diapers - XXL (12 pcs)', 'Size XXL hypoallergenic diapers. Breathable and leak-proof.', 350.00, 150, 1, 'img/XXL_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XXL_Diaper.jpg')),
+(27, 4, 26, 'UY-DP-XXL-24', 'Ultra-Soft Diapers - XXL (24 pcs)', 'Size XXL hypoallergenic diapers. Breathable and leak-proof.', 670.00, 150, 1, 'img/XXL_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XXL_Diaper.jpg')),
+(28, 4, 26, 'UY-DP-XXL-36', 'Ultra-Soft Diapers - XXL (36 pcs)', 'Size XXL hypoallergenic diapers. Breathable and leak-proof.', 990.00, 150, 1, 'img/XXL_Diaper.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/XXL_Diaper.jpg')),
+(29, 1, NULL, 'UY-BS-BAR', 'Bath Soap Bar', 'High-quality Bath Soap Bar for delicate skin.', 180.00, 120, 1, 'img/Bath_Soap.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Bath_Soap.jpg')),
+(30, 2, NULL, 'UY-CR-JAR', 'Soothing Chest Rub', 'High-quality Soothing Chest Rub for delicate skin.', 320.00, 120, 1, 'img/Chest_Rub.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Chest_Rub.jpg')),
+(31, 2, NULL, 'UY-PJ-JAR', 'Pure Petroleum Jelly', 'High-quality Pure Petroleum Jelly for delicate skin.', 150.00, 120, 1, 'img/Petroleum_Jelly.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Petroleum_Jelly.jpg')),
+(32, 2, NULL, 'UY-RS-SPR', 'Nappy Rash Spray', 'High-quality Nappy Rash Spray for delicate skin.', 450.00, 120, 1, 'img/Rash_Spray.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Rash_Spray.jpg')),
+(33, 2, NULL, 'UY-NB-TBE', 'Organic Nipple Balm', 'High-quality Organic Nipple Balm for delicate skin.', 580.00, 120, 1, 'img/Nipple_Balm.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Nipple_Balm.jpg')),
+(34, 2, NULL, 'UY-SG-TBE', 'Aloe Soothing Gel', 'High-quality Aloe Soothing Gel for delicate skin.', 290.00, 120, 1, 'img/Soothing_Gel.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Soothing_Gel.jpg')),
+(35, 6, NULL, 'UY-CB-PK', 'Cotton Buds (200s)', 'High-quality Cotton Buds (200s) for delicate skin.', 140.00, 120, 1, 'img/Cotton_Buds.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Cotton_Buds.jpg')),
+(36, 6, NULL, 'UY-FC-BTL', 'Fabric Conditioner (1L)', 'High-quality Fabric Conditioner (1L) for delicate skin.', 380.00, 120, 1, 'img/Fabric_Conditioner.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Fabric_Conditioner.jpg')),
+(37, 4, NULL, 'UY-WP-PK', 'Baby Wipes (80 sheets)', 'High-quality Baby Wipes (80 sheets) for delicate skin.', 190.00, 120, 1, 'img/Wipes.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Wipes.jpg')),
+(38, 3, NULL, 'UY-FS-SPF', 'Face Sunscreen SPF30', 'High-quality Face Sunscreen SPF30 for delicate skin.', 620.00, 120, 1, 'img/Face_Sunscreen.jpg', NOW(), NOW(), NULL, JSON_ARRAY('img/Face_Sunscreen.jpg'));
 
 -- --------------------------------------------------------
 
@@ -183,10 +233,12 @@ CREATE TABLE `users` (
   `id` int(11) PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(150) NOT NULL,
   `email` varchar(150) NOT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `phone` varchar(30) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `photo` varchar(255) DEFAULT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `role` varchar(20) NOT NULL DEFAULT 'customer',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL
@@ -196,37 +248,26 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `address`, `photo`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'Admin User', 'admin@uyayi.com', '$2y$10$1YpW0FtCNOFMhw8a1v6Xl.7/fgZIMx2vqhipwwJYrksLGzHLrAMFC', NULL, NULL, NULL, 'admin', '2026-02-26 16:13:03', '2026-02-26 16:13:03'),
-(2, 'Test Customer', 'customer@test.com', '$2y$10$DNOBdlGhnIjw3D24yLrdjuj4WDoepJ4Xs0T6i6P2KVFtqYpVBS8zq', NULL, NULL, NULL, 'customer', '2026-02-26 16:13:03', '2026-02-26 16:13:03'),
-(3, 'John Smith', 'john@example.com', '$2y$10$.G/5Da9JNNG3aivDCNIbUunIM1uBau6vc.0lBKcURV6ApeswEm2fa', NULL, NULL, NULL, 'customer', '2026-02-26 16:13:03', '2026-02-26 16:13:03');
+INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `phone`, `address`, `photo`, `status`, `role`, `created_at`, `updated_at`) VALUES
+(1, 'Admin User', 'admin@uyayi.com', NOW(), '$2y$10$FJEFd5Knm9BQyPee03vmbODYpNalDUME5BDkEiNWimaz2J3XOxapC', NULL, NULL, NULL, 'active', 'admin', NOW(), NOW()),
+(2, 'Test Customer', 'customer@test.com', NOW(), '$2y$10$cRetgGTlzkb1UnB8JeF1mu.OHT60N9QVA8CTfeSlQzdj/HSEM60gi', NULL, NULL, NULL, 'active', 'customer', NOW(), NOW()),
+(3, 'John Smith', 'john@example.com', NOW(), '$2y$10$cRetgGTlzkb1UnB8JeF1mu.OHT60N9QVA8CTfeSlQzdj/HSEM60gi', NULL, NULL, NULL, 'active', 'customer', NOW(), NOW());
 
 --
 -- Indexes for dumped tables
 --
 -- --------------------------------------------------------
-
---
--- Table structure for table `categories`
---
-
-CREATE TABLE `categories` (
-  `id` int(11) PRIMARY KEY AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL UNIQUE,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 --
 -- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`id`, `name`, `created_at`, `updated_at`) VALUES
-  (1, 'Bath Essentials', 1, NOW(), NULL),
-  (2, 'Diapering Care', 1, NOW(), NULL),
-  (3, 'Skin Care', 1, NOW(), NULL),
-  (4, 'Health & Hygiene', 1, NOW(), NULL);
+INSERT INTO `categories` (`id`, `name`, `is_active`, `created_at`, `updated_at`) VALUES
+  (1, 'Bath Essentials', 1, NOW(), NOW()),
+  (2, 'Diapering Care', 1, NOW(), NOW()),
+  (3, 'Skin Care', 1, NOW(), NOW()),
+  (4, 'Health & Hygiene', 1, NOW(), NOW()),
+  (5, 'Sachet Variants', 1, NOW(), NOW()),
+  (6, 'Household Essentials', 1, NOW(), NOW());
 
 --
 -- Indexes for table `orders`
@@ -255,12 +296,14 @@ ALTER TABLE `payments`
 ALTER TABLE `products`
   ADD UNIQUE KEY `sku` (`sku`),
   ADD KEY `idx_products_visible` (`visible`),
-  ADD KEY `idx_products_category` (`category_id`);
+  ADD KEY `idx_products_category` (`category_id`),
+  ADD KEY `idx_products_parent` (`parent_id`);
 --
 -- Constraints for table `products`
 --
 ALTER TABLE `products`
-  ADD CONSTRAINT `products_ibfk_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `products_ibfk_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `products_ibfk_parent` FOREIGN KEY (`parent_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
 --
 -- Indexes for table `roles`
 --
@@ -318,7 +361,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `product_images`
@@ -369,11 +412,6 @@ ALTER TABLE `role_user`
   ADD CONSTRAINT `role_user_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `role_user_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
 COMMIT;
-
---
--- Add Parent ID column to products for variants
---
-ALTER TABLE products ADD COLUMN parent_id BIGINT UNSIGNED NULL AFTER category_id;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

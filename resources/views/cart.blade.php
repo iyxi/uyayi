@@ -5,7 +5,7 @@
 
 @section('content')
 <!-- Page Header -->
-<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-tan);">
+<section class="py-4" style="background-color: white; border-bottom: 2px solid var(--soft-tan); box-shadow: 0 2px 8px rgba(122,185,232,0.08);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6">
@@ -30,7 +30,7 @@
 <!-- Cart Content -->
 <section class="py-5">
     <div class="container">
-        <div class="row">
+        <div class="row g-4 align-items-start">
             <!-- Cart Items -->
             <div class="col-lg-8">
                 <!-- Empty Cart State -->
@@ -69,7 +69,7 @@
             
             <!-- Cart Summary -->
             <div class="col-lg-4">
-                <div class="sticky-top" style="top: 2rem;">
+                <div class="sticky-top cart-summary-sticky">
                     <!-- Order Summary -->
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white">
@@ -80,9 +80,9 @@
                                 <span>Subtotal:</span>
                                 <span class="fw-bold" id="cart-subtotal">₱0.00</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Shipping:</span>
-                                <span class="fw-bold" id="shipping-cost">Free</span>
+                            <div class="d-flex justify-content-between mb-2 align-items-center">
+                                <span>Shipping Fee:</span>
+                                <span class="fw-bold text-primary" id="shipping-cost">Free</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Tax:</span>
@@ -96,9 +96,12 @@
                             
                             <!-- Promo Code -->
                             <div class="mb-3">
+                                <label for="promo-code" class="form-label mb-1">Promo Code</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Promo code" id="promo-code">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="applyPromoCode()">Apply</button>
+                                    <input type="text" class="form-control" placeholder="Enter promo code" id="promo-code">
+                                    <button class="btn btn-outline-secondary rounded-circle" type="button" style="width:40px; height:40px; display:flex; align-items:center; justify-content:center;" onclick="applyPromoCode()" title="Apply Promo Code">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
                                 </div>
                             </div>
                             
@@ -180,6 +183,24 @@ function getProductPrimaryImage(product) {
     return resolveProductImageUrl(firstImage);
 }
 
+function formatPeso(value) {
+    const amount = Number(value || 0);
+    return `\u20B1${amount.toFixed(2)}`;
+}
+
+function renderCatalogRating(product) {
+    const average = Number(product.reviews_avg_rating || 0);
+    const count = Number(product.reviews_count || 0);
+    const rounded = Math.round(average);
+    let stars = '';
+
+    for (let i = 1; i <= 5; i += 1) {
+        stars += i <= rounded ? '★' : '☆';
+    }
+
+    return `${stars} <span class="ms-1 small">${average.toFixed(2)} (${count})</span>`;
+}
+
 function loadCartItems() {
     const cartItems = Object.values(cart);
     const cartItemsList = document.getElementById('cart-items-list');
@@ -252,7 +273,9 @@ function updateQuantity(productId, newQuantity) {
     
     if (cart[productId]) {
         cart[productId].quantity = newQuantity;
-        localStorage.setItem('cart', JSON.stringify(cart));
+        if (typeof cartStorageKey === 'string' && cartStorageKey.length > 0) {
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+        }
         loadCartItems();
         updateCartCount();
         if (typeof renderCartPreview === 'function') {
@@ -264,7 +287,9 @@ function updateQuantity(productId, newQuantity) {
 function removeFromCart(productId) {
     if (confirm('Remove this item from your cart?')) {
         delete cart[productId];
-        localStorage.setItem('cart', JSON.stringify(cart));
+        if (typeof cartStorageKey === 'string' && cartStorageKey.length > 0) {
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+        }
         loadCartItems();
         updateCartCount();
         if (typeof renderCartPreview === 'function') {
@@ -277,7 +302,9 @@ function removeFromCart(productId) {
 function clearCart() {
     if (confirm('Remove all items from your cart?')) {
         cart = {};
-        localStorage.removeItem('cart');
+        if (typeof cartStorageKey === 'string' && cartStorageKey.length > 0) {
+            localStorage.removeItem(cartStorageKey);
+        }
         loadCartItems();
         updateCartCount();
         if (typeof renderCartPreview === 'function') {
@@ -294,7 +321,7 @@ function updateCartTotal() {
     }, 0);
     
     const shippingThreshold = 1000;
-    const shipping = subtotal === 0 ? 0 : (subtotal >= shippingThreshold ? 0 : 300);
+    const shipping = subtotal === 0 ? 0 : (subtotal >= shippingThreshold ? 0 : 50);
     const taxRate = 0.08; // 8% tax
     const tax = subtotal * taxRate;
     const total = subtotal + shipping + tax;
@@ -362,7 +389,12 @@ function loadRecommendedProducts() {
         .then(response => response.json())
         .then(data => {
             const products = data.data ? data.data.slice(0, 4) : [];
-            const recommendedHTML = products.map(product => `
+            const recommendedHTML = products.map(product => {
+                const stock = Number(product.stock || 0);
+                const badgeLabel = stock <= 0 ? 'Out of Stock' : (stock <= 5 ? 'Sale!' : 'New!');
+                const badgeClass = stock <= 0 ? 'shop-catalog-badge shop-catalog-badge--out' : (stock <= 5 ? 'shop-catalog-badge shop-catalog-badge--sale' : 'shop-catalog-badge');
+
+                return `
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="product-card h-100 shadow-sm">
                         <img src="${getProductPrimaryImage(product)}" 
@@ -388,6 +420,49 @@ function loadRecommendedProducts() {
         .catch(error => console.error('Error loading recommended products:', error));
 }
 
+function loadRecommendedProducts() {
+    fetch('/api/products')
+        .then(response => response.json())
+        .then(data => {
+            const products = data.data ? data.data.slice(0, 4) : [];
+            const recommendedHTML = products.map(product => {
+                const stock = Number(product.stock || 0);
+                const badgeLabel = stock <= 0 ? 'Out of Stock' : (stock <= 5 ? 'Sale!' : 'New!');
+                const badgeClass = stock <= 0 ? 'shop-catalog-badge shop-catalog-badge--out' : (stock <= 5 ? 'shop-catalog-badge shop-catalog-badge--sale' : 'shop-catalog-badge');
+
+                return `
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                        <div class="shop-catalog-card">
+                            <div class="shop-catalog-card__media">
+                                <span class="${badgeClass}">${badgeLabel}</span>
+                                <img src="${getProductPrimaryImage(product)}"
+                                     class="shop-catalog-card__image" alt="${product.name}" onerror="this.onerror=null;this.src='/img/logo.png';">
+                            </div>
+                            <div class="shop-catalog-card__body">
+                                <h6 class="shop-catalog-card__title">${product.name}</h6>
+                                <div class="shop-catalog-card__price">${formatPeso(product.price)}</div>
+                                <div class="shop-catalog-card__stars">${renderCatalogRating(product)}</div>
+                                <div class="shop-catalog-card__meta">${stock > 0 ? `In stock (${stock})` : 'Currently unavailable'}</div>
+                                <div class="shop-catalog-card__actions">
+                                    <button class="shop-catalog-icon-btn" onclick="viewProduct(${product.id})" aria-label="View ${product.name}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="shop-catalog-icon-btn shop-catalog-icon-btn--primary" onclick="addToCart(${product.id})" aria-label="Add ${product.name} to cart" ${stock <= 0 ? 'disabled' : ''}>
+                                        <i class="bi bi-bag-plus"></i>
+                                    </button>
+                                </div>
+                                <p class="small text-muted mt-3 mb-0">${product.description || 'Carefully selected baby essentials from your catalog.'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('recommended-products').innerHTML = recommendedHTML;
+        })
+        .catch(error => console.error('Error loading recommended products:', error));
+}
+
 function viewProduct(productId) {
     window.location.href = `/product/${productId}`;
 }
@@ -401,6 +476,150 @@ window.removeFromCart = removeFromCart;
     position: sticky;
     top: 2rem;
     z-index: 1020;
+}
+
+.cart-summary-sticky {
+    top: 1.5rem;
+}
+
+#cart-items-list .border-bottom:last-child {
+    border-bottom: 0 !important;
+}
+
+#recommended-products {
+    justify-content: center;
+}
+
+#recommended-products .shop-catalog-card {
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(95, 74, 45, 0.08);
+    overflow: hidden;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#recommended-products .shop-catalog-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(95, 74, 45, 0.14);
+}
+
+#recommended-products .shop-catalog-card__media {
+    position: relative;
+    background: linear-gradient(180deg, #faf7f2 0%, #f3eee8 100%);
+    border-radius: 26px;
+    margin: 0.85rem;
+    min-height: 220px;
+    overflow: hidden;
+}
+
+#recommended-products .shop-catalog-card__image {
+    width: 100%;
+    height: 220px;
+    object-fit: contain;
+    padding: 1rem;
+}
+
+#recommended-products .shop-catalog-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #7dc8f7;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+#recommended-products .shop-catalog-badge--sale {
+    background: #a7d64b;
+}
+
+#recommended-products .shop-catalog-badge--out {
+    background: #c7c7c7;
+}
+
+#recommended-products .shop-catalog-card__body {
+    padding: 0.25rem 1.25rem 1.35rem;
+    text-align: center;
+}
+
+#recommended-products .shop-catalog-card__title {
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #453624;
+    min-height: 2.6em;
+    margin-bottom: 0.45rem;
+}
+
+#recommended-products .shop-catalog-card__price {
+    font-size: 1.4rem;
+    line-height: 1;
+    font-weight: 900;
+    color: var(--primary-blue-dark);
+    margin-bottom: 0.45rem;
+}
+
+#recommended-products .shop-catalog-card__stars {
+    color: var(--accent-brown);
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.9rem;
+}
+
+#recommended-products .shop-catalog-card__meta {
+    font-size: 0.78rem;
+    color: #8f816f;
+    margin-bottom: 0.9rem;
+}
+
+#recommended-products .shop-catalog-card__actions {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    justify-content: center;
+}
+
+#recommended-products .shop-catalog-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #f0d7bc;
+    background: #fff;
+    color: #7b6241;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+#recommended-products .shop-catalog-icon-btn:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue-dark);
+}
+
+#recommended-products .shop-catalog-icon-btn--primary {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue);
+    color: #fff;
+}
+
+#recommended-products .shop-catalog-icon-btn--primary:hover {
+    background: var(--primary-blue-dark);
+    border-color: var(--primary-blue-dark);
+    color: #fff;
 }
 
 .alert-sm {
@@ -428,6 +647,10 @@ window.removeFromCart = removeFromCart;
     .sticky-top {
         position: relative;
         top: auto;
+    }
+
+    #cart-items-list .row > div {
+        text-align: left !important;
     }
 }
 </style>

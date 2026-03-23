@@ -195,9 +195,9 @@
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
                                                 <strong>Standard Shipping</strong>
-                                                <p class="small text-muted mb-0">5-7 business days</p>
+                                                <p class="small text-muted mb-0">5-7 business days, free for orders ₱1000 and above</p>
                                             </div>
-                                            <span class="fw-bold">Free</span>
+                                            <span class="fw-bold">₱50.00</span>
                                         </div>
                                     </label>
                                 </div>
@@ -285,6 +285,10 @@
                                 <span id="checkout-shipping">Free</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
+                                <span>Discount:</span>
+                                <span id="checkout-discount">â‚±0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
                                 <span>Tax:</span>
                                 <span id="checkout-tax">₱0.00</span>
                             </div>
@@ -298,6 +302,15 @@
                             <button type="button" class="btn btn-primary-custom w-100 btn-lg mb-3" onclick="placeOrder()">
                                 <i class="bi bi-lock me-2"></i>Place Order
                             </button>
+                            
+                            <div class="mb-3">
+                                <label for="promo_code" class="form-label fw-bold">Promo Code</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="promo_code" placeholder="Enter promo code">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="applyPromoCode()">Apply</button>
+                                </div>
+                                <small id="promo-feedback" class="text-muted d-block mt-2">Available codes: UYAYI5 for 5% off, BABY10 for 10% off, WELCOME50 for ₱50 off.</small>
+                            </div>
                             
                             <!-- Security Info -->
                             <div class="text-center">
@@ -317,6 +330,14 @@
 
 @push('scripts')
 <script>
+const availablePromoCodes = {
+    UYAYI5: { type: 'percent', value: 5, label: '5% off your order' },
+    BABY10: { type: 'percent', value: 10, label: '10% off your order' },
+    WELCOME50: { type: 'fixed', value: 50, label: '₱50 off your order' }
+};
+
+let appliedPromo = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     loadCheckoutItems();
     setupEventListeners();
@@ -392,16 +413,25 @@ function updateCheckostTotal() {
                 shippingCost = 500;
                 break;
             default:
-                shippingCost = subtotal >= 1000 ? 0 : 300;
+                shippingCost = subtotal >= 1000 ? 0 : 50;
         }
     }
     
+    let discount = 0;
+    if (appliedPromo) {
+        discount = appliedPromo.type === 'percent'
+            ? (subtotal + shippingCost + (subtotal * 0.08)) * (appliedPromo.value / 100)
+            : appliedPromo.value;
+        discount = Math.min(discount, subtotal + shippingCost);
+    }
+
     const taxRate = 0.08;
     const tax = subtotal * taxRate;
-    const total = subtotal + shippingCost + tax;
+    const total = subtotal + shippingCost + tax - discount;
     
     document.getElementById('checkout-subtotal').textContent = formatPeso(subtotal);
     document.getElementById('checkout-shipping').textContent = shippingCost === 0 ? 'Free' : formatPeso(shippingCost);
+    document.getElementById('checkout-discount').textContent = discount > 0 ? `-${formatPeso(discount)}` : formatPeso(0);
     document.getElementById('checkout-tax').textContent = formatPeso(tax);
     document.getElementById('checkout-total').textContent = formatPeso(total);
 }
@@ -409,6 +439,34 @@ function updateCheckostTotal() {
 // Fix the function name typo
 function updateCheckoutTotal() {
     updateCheckostTotal();
+}
+
+function applyPromoCode() {
+    const promoInput = document.getElementById('promo_code');
+    const feedback = document.getElementById('promo-feedback');
+    const code = promoInput.value.trim().toUpperCase();
+
+    if (!code) {
+        appliedPromo = null;
+        feedback.className = 'text-muted d-block mt-2';
+        feedback.textContent = 'Enter a promo code to apply a discount.';
+        updateCheckoutTotal();
+        return;
+    }
+
+    const promo = availablePromoCodes[code];
+    if (!promo) {
+        appliedPromo = null;
+        feedback.className = 'text-danger d-block mt-2';
+        feedback.textContent = 'Invalid promo code.';
+        updateCheckoutTotal();
+        return;
+    }
+
+    appliedPromo = { code, ...promo };
+    feedback.className = 'text-success d-block mt-2';
+    feedback.textContent = `${code} applied: ${promo.label}`;
+    updateCheckoutTotal();
 }
 
 function placeOrder() {
@@ -452,6 +510,8 @@ function placeOrder() {
         body: JSON.stringify({
             shipping_address: shippingAddress,
             method: 'COD',
+            shipping_method: document.querySelector('input[name="shipping_method"]:checked')?.value || 'standard',
+            promo_code: appliedPromo?.code || '',
             cart_items: cartItems
         })
     })
@@ -469,8 +529,7 @@ function placeOrder() {
     })
     .then(data => {
         showToast('Order placed successfully! 🎉', 'success');
-        cart = {};
-        localStorage.removeItem('cart');
+        clearProcessedCartItems(data.processed_items || []);
         updateCartCount();
 
         const redirectUrl = data.redirect_url || '{{ route("orders.index") }}';
@@ -487,6 +546,27 @@ function placeOrder() {
             placeOrderBtn.disabled = false;
         }
     });
+}
+
+function clearProcessedCartItems(processedItems) {
+    if (!Array.isArray(processedItems) || processedItems.length === 0) {
+        cart = {};
+    } else {
+        processedItems.forEach(item => {
+            const productId = Number(item.product_id || 0);
+            if (productId && cart[productId]) {
+                delete cart[productId];
+            }
+        });
+    }
+
+    if (typeof cartStorageKey === 'string' && cartStorageKey.length > 0) {
+        if (Object.keys(cart).length === 0) {
+            localStorage.removeItem(cartStorageKey);
+        } else {
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+        }
+    }
 }
 
 function validateForm() {
