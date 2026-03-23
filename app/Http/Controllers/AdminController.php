@@ -325,6 +325,39 @@ class AdminController extends Controller
         );
     }
 
+    public function downloadImportTemplate()
+    {
+        $headers = [
+            'name',
+            'sku',
+            'description',
+            'price',
+            'stock',
+            'visible',
+            'category',
+        ];
+
+        $sampleRows = [
+            ['Baby Bath', 'SKU-BATH-001', 'Gentle baby bath wash', '130.00', '40', 'yes', 'Bath Essentials'],
+            ['Baby Lotion', 'SKU-LOTION-001', 'Moisturizing lotion for infants', '145.00', '30', 'yes', 'Skin Care'],
+        ];
+
+        $handle = fopen('php://temp', 'w+');
+        fputcsv($handle, $headers);
+        foreach ($sampleRows as $row) {
+            fputcsv($handle, $row);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="products-import-template.csv"',
+        ]);
+    }
+
     private function normalizeImportHeader($header): string
     {
         return strtolower(trim(preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $header), '_'));

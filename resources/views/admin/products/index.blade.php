@@ -180,6 +180,9 @@
                     <div class="alert alert-light border mb-0">
                         <strong>Expected columns:</strong>
                         <div class="small mt-1">name (required), sku, description, price, stock, visible, category or category_name</div>
+                        <a href="{{ route('admin.products.import.template') }}" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="bi bi-download"></i> Download Template
+                        </a>
                     </div>
                 </div>
                 <div class="modal-footer">

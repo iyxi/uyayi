@@ -56,6 +56,7 @@ Route::prefix('admin')->middleware(['admin'])->group(function(){
     // Products
     Route::get('/products', [AdminController::class, 'index'])->name('admin.products.index');
     Route::get('/products/trashed', [AdminController::class, 'trashed'])->name('admin.products.trashed');
+    Route::get('/products/import-template', [AdminController::class, 'downloadImportTemplate'])->name('admin.products.import.template');
     Route::post('/products/import', [AdminController::class, 'importProducts'])->name('admin.products.import');
     Route::post('/products', [AdminController::class, 'store'])->name('admin.products.store');
     Route::get('/products/create', function() {
