@@ -177,7 +177,7 @@ class CustomerController extends Controller
         $order = Order::create([
             'user_id'=>$user->id,
             'order_number'=>uniqid('ORD-'),
-            'status'=>'Pending',
+            'status'=>'completed',
             'total'=>0,
             'shipping_address'=>$r->input('shipping_address')
         ]);
