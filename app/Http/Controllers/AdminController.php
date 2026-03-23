@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Pagination\LengthAwarePaginator;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer as XlsxWriter;
 
@@ -667,6 +668,16 @@ class AdminController extends Controller
 
     public function reviews()
     {
+        if (!Schema::hasTable('reviews')) {
+            $reviews = new LengthAwarePaginator([], 0, 20);
+            $stats = [
+                'count' => 0,
+                'average' => 0,
+            ];
+
+            return view('admin.reviews.index', compact('reviews', 'stats'));
+        }
+
         $reviews = Review::with(['user', 'reviewable'])
             ->latest()
             ->paginate(20);

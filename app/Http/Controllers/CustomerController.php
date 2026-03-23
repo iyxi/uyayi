@@ -12,6 +12,7 @@ use App\Mail\TransactionCompletedMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class CustomerController extends Controller
 {
@@ -24,16 +25,13 @@ class CustomerController extends Controller
         if ($search !== '') {
             $products = Product::search($search)
                 ->query(function ($query) {
-                    $query->withCount('reviews')
-                        ->withAvg('reviews', 'rating')
+                    $this->applyReviewAggregates($query)
                         ->orderBy('created_at', 'desc');
                 })
                 ->paginate($perPage)
                 ->appends($request->query());
         } else {
-            $products = Product::query()
-                ->withCount('reviews')
-                ->withAvg('reviews', 'rating')
+            $products = $this->applyReviewAggregates(Product::query())
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage)
                 ->appends($request->query());
@@ -56,8 +54,7 @@ class CustomerController extends Controller
     {
         $categories = Category::active()
             ->with(['products' => function ($query) {
-                $query->withCount('reviews')
-                    ->withAvg('reviews', 'rating')
+                $this->applyReviewAggregates($query)
                     ->orderBy('name');
             }])
             ->orderBy('name')
@@ -102,9 +99,7 @@ class CustomerController extends Controller
     // API endpoint for products (used by frontend)
     public function index()
     {
-        $query = Product::query()
-            ->withCount('reviews')
-            ->withAvg('reviews', 'rating');
+        $query = $this->applyReviewAggregates(Product::query());
 
         // Search filter
         if (request()->filled('search')) {
@@ -150,9 +145,7 @@ class CustomerController extends Controller
     public function showProductApi(Product $product)
     {
         return response()->json(
-            Product::query()
-                ->withCount('reviews')
-                ->withAvg('reviews', 'rating')
+            $this->applyReviewAggregates(Product::query())
                 ->findOrFail($product->id)
         );
     }
@@ -366,5 +359,17 @@ class CustomerController extends Controller
                 'value' => 50,
             ],
         ];
+    }
+
+    private function applyReviewAggregates($query)
+    {
+        if (!Schema::hasTable('reviews')) {
+            return $query->select('products.*')
+                ->selectRaw('0 as reviews_count')
+                ->selectRaw('0 as reviews_avg_rating');
+        }
+
+        return $query->withCount('reviews')
+            ->withAvg('reviews', 'rating');
     }
 }

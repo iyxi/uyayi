@@ -6,11 +6,24 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class ReviewController extends Controller
 {
     public function index(Product $product, Request $request)
     {
+        if (!Schema::hasTable('reviews')) {
+            return response()->json([
+                'reviews' => [],
+                'summary' => [
+                    'average_rating' => 0,
+                    'count' => 0,
+                ],
+                'can_review' => false,
+                'user_review' => null,
+            ]);
+        }
+
         $query = Review::with('user')
             ->where('reviewable_type', Product::class)
             ->where('reviewable_id', $product->id)
@@ -65,6 +78,12 @@ class ReviewController extends Controller
 
     public function upsert(Product $product, Request $request)
     {
+        if (!Schema::hasTable('reviews')) {
+            return response()->json([
+                'message' => 'Reviews are not available until the reviews table is migrated.',
+            ], 503);
+        }
+
         $user = $request->user();
 
         if (!$this->userHasPurchasedProduct($user->id, $product->id)) {
@@ -105,7 +124,7 @@ class ReviewController extends Controller
         return OrderItem::query()
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('orders.user_id', $userId)
-            ->where('orders.status', 'Completed')
+            ->whereRaw("LOWER(COALESCE(orders.status, '')) = ?", ['completed'])
             ->where('order_items.product_id', $productId)
             ->exists();
     }

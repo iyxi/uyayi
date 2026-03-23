@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('expenses', function (Blueprint $table) {
-            $table->id();
-            $table->string('description');
-            $table->decimal('amount', 10, 2);
-            $table->date('expense_date');
-            $table->timestamp('created_at')->useCurrent();
-        });
+        if (!Schema::hasTable('expenses')) {
+            Schema::create('expenses', function (Blueprint $table) {
+                $table->id();
+                $table->string('description');
+                $table->decimal('amount', 10, 2);
+                $table->date('expense_date');
+                $table->timestamp('created_at')->useCurrent();
+            });
+        }
     }
 
     public function down(): void
