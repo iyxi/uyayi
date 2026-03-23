@@ -3,12 +3,13 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Auth\Events\Verified;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChartController;
 use App\Http\Controllers\ReviewController;
+use App\Models\User;
 
 // Charts page
 Route::get('/charts', [ChartController::class, 'index'])->name('charts.index');
@@ -39,11 +40,28 @@ Route::get('/email/verify', function () {
     return view('auth.verify-email');
 })->middleware('auth')->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = User::find($id);
 
-    return redirect()->route('homepage')->with('success', 'Your email has been verified successfully.');
-})->middleware(['auth', 'signed'])->name('verification.verify');
+    if (!$user) {
+        return redirect()->route('login')->withErrors([
+            'email' => 'Invalid verification link.',
+        ]);
+    }
+
+    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        return redirect()->route('login')->withErrors([
+            'email' => 'Invalid verification link hash.',
+        ]);
+    }
+
+    if (!$user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+        event(new Verified($user));
+    }
+
+    return redirect()->route('login')->with('success', 'Your email has been verified successfully. You can now sign in.');
+})->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
